@@ -1,0 +1,80 @@
+.weekly-activity-card {
+  min-width: 0;
+  padding: var(--studio-card-padding);
+  border: 1px solid var(--studio-card-border);
+  border-radius: var(--studio-card-radius);
+  background: var(--studio-card-surface);
+  color: var(--studio-text);
+}
+
+.weekly-activity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.weekly-activity-header h2 {
+  margin: 0;
+  color: var(--studio-text);
+  font: 500 15px/1.4 'Playfair Display', serif;
+}
+
+.weekly-activity-header p {
+  margin: 5px 0 0;
+  color: var(--studio-muted);
+  font: 12px/1.5 'DM Sans', sans-serif;
+}
+
+.weekly-activity-chart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  align-items: end;
+  gap: clamp(6px, 1.3vw, 12px);
+  margin-top: 15px;
+}
+
+.weekly-activity-day {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 82px auto;
+  gap: 7px;
+  text-align: center;
+}
+
+.weekly-activity-track {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: 5px;
+}
+
+.weekly-activity-track.has-data { background: #1b1b1b; }
+.weekly-activity-track.is-unavailable { border: 1px dashed #383838; background: #151515; }
+
+.weekly-activity-bar {
+  display: block;
+  width: 100%;
+  min-height: 0;
+  border-radius: 5px;
+  background: var(--studio-muted);
+}
+
+.weekly-activity-day-label {
+  color: var(--studio-muted);
+  font: 12px/1.3 'DM Sans', sans-serif;
+}
+
+.weekly-activity-status {
+  margin: 11px 0 0;
+  color: var(--studio-subtle);
+  font: 10px/1.5 'DM Sans', sans-serif;
+}
+
+@media (max-width: 700px) {
+  .weekly-activity-card { padding: 18px; }
+  .weekly-activity-chart { gap: 7px; }
+  .weekly-activity-day { grid-template-rows: 72px auto; }
+}
+

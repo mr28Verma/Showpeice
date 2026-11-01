@@ -1,0 +1,55 @@
+.showpeice-floating-field {
+  position: relative;
+  min-width: 0;
+}
+
+.showpeice-floating-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 48px;
+  padding: 17px 12px 5px;
+  border: 1px solid var(--border-strong, #3a3a3a);
+  border-radius: 8px;
+  outline: 0;
+  background: var(--surface, #111);
+  color: var(--text-primary, #f5f5f5);
+  font: 400 12px/1.4 'DM Sans', sans-serif;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+
+.showpeice-floating-input::placeholder { color: transparent; }
+.showpeice-floating-input:hover { border-color: #535353; }
+.showpeice-floating-input:focus {
+  border-color: var(--accent-hover, #d4d4d8);
+  box-shadow: 0 0 0 2px rgba(212, 212, 216, 0.12);
+}
+
+.showpeice-floating-label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  color: var(--text-secondary, #a5a5a5);
+  font: 400 12px/1.2 'DM Sans', sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translateY(-50%);
+  transform-origin: left top;
+  transition: top .16s ease, color .16s ease, font-size .16s ease, letter-spacing .16s ease;
+}
+
+.showpeice-floating-input:focus + .showpeice-floating-label,
+.showpeice-floating-input:not(:placeholder-shown) + .showpeice-floating-label {
+  top: 7px;
+  color: var(--accent, #ffffff);
+  font-size: 9px;
+  letter-spacing: .15px;
+}
+
+.showpeice-floating-input:focus-visible + .showpeice-floating-label { color: var(--accent-hover, #d4d4d8); }
+
+@media (prefers-reduced-motion: reduce) {
+  .showpeice-floating-input, .showpeice-floating-label { transition: none; }
+}

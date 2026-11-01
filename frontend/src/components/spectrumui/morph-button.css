@@ -1,0 +1,82 @@
+.morph-button {
+  position: relative;
+  min-width: 148px;
+  overflow: hidden;
+  transition:
+    background-color .2s ease,
+    border-color .2s ease,
+    border-radius .24s ease,
+    box-shadow .2s ease,
+    color .2s ease,
+    transform .18s ease;
+}
+
+.morph-button__content {
+  display: inline-flex;
+  min-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.morph-button--loading {
+  cursor: wait;
+  transform: none;
+}
+
+.morph-button.morph-button--success {
+  border-color: #00bf82;
+  border-radius: 999px;
+  background: #00bf82;
+  color: #ffffff;
+  box-shadow: 0 3px 16px rgb(0 191 130 / 18%);
+  cursor: default;
+  text-transform: none;
+  transform: none;
+}
+
+.morph-button__spinner {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: morph-button-spin .75s linear infinite;
+}
+
+.morph-button__check {
+  display: inline-grid;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  place-items: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.morph-button:disabled {
+  cursor: wait;
+}
+
+.morph-button.morph-button--loading:hover,
+.morph-button.morph-button--success:hover {
+  transform: none;
+}
+
+.morph-button.morph-button--success:disabled {
+  cursor: default;
+}
+
+@keyframes morph-button-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .morph-button,
+  .morph-button__spinner {
+    animation: none;
+    transition: none;
+  }
+}

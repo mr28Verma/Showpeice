@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  phone     String?
+  role      String   @default("buyer")
+  createdAt DateTime @default(now())
+  displayName String?
+  bio String? @db.Text
+  avatarUrl String?
+  bannerUrl String?
+  medium String?
+  location String?
+  instagramUrl String?
+  websiteUrl String?
+  emailNotifications Boolean @default(false)
+  publicProfileVisible Boolean @default(true)
+  artworks  Artwork[]
+  followers ArtistFollow[] @relation("ArtistFollowers")
+  following ArtistFollow[] @relation("UserFollowing")
+  orders    Order[]        @relation("BuyerOrders")
+  addresses Address[]
+}
+
+model Artwork {
+  id          Int      @id @default(autoincrement())
+  artistId    Int
+  artist      User     @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  title       String
+  description String   @db.Text
+  price       Int
+  category    String
+  imageUrl    String?
+  isProtected Boolean  @default(false)
+  available   Boolean  @default(true)
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orderItems  OrderItem[]
+
+  @@index([artistId, updatedAt])
+}
+
+model ArtistFollow {
+  followerId Int
+  artistId   Int
+  createdAt  DateTime @default(now())
+
+  follower User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  artist   User @relation("ArtistFollowers", fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, artistId])
+  @@index([artistId, createdAt])
+}
+
+model Address {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName    String
+  phone       String?
+  street      String
+  city        String
+  state       String
+  postalCode  String
+  country     String   @default("India")
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
+
+  @@index([userId])
+}
+
+model Order {
+  id                Int         @id @default(autoincrement())
+  orderNumber       String      @unique
+  buyerId           Int
+  buyer             User        @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
+  totalAmount       Int
+  status            String      @default("processing")
+  paymentStatus     String      @default("paid")
+  paymentMethod     String      @default("card")
+  addressId         Int?
+  address           Address?    @relation(fields: [addressId], references: [id], onDelete: SetNull)
+  shippingAddress   Json?
+  trackingNumber    String?
+  estimatedDelivery DateTime?
+  items             OrderItem[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@index([buyerId, createdAt])
+}
+
+model OrderItem {
+  id          Int      @id @default(autoincrement())
+  orderId     Int
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  artworkId   Int
+  artwork     Artwork  @relation(fields: [artworkId], references: [id], onDelete: Restrict)
+  quantity    Int      @default(1)
+  price       Int
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([artworkId])
+}

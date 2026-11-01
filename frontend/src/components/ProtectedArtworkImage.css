@@ -1,0 +1,178 @@
+.protected-artwork-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.protected-artwork-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-drag: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.protected-artwork-watermark {
+  position: absolute;
+  z-index: 2;
+  right: clamp(9px, 2vw, 18px);
+  bottom: clamp(9px, 2vw, 18px);
+  max-width: calc(100% - 18px);
+  overflow: hidden;
+  color: rgb(255 255 255 / 78%);
+  font-family: 'DM Sans', Arial, sans-serif;
+  font-size: clamp(8px, 1vw, 11px);
+  font-weight: 600;
+  letter-spacing: .2em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 88%), 0 0 10px rgb(0 0 0 / 58%);
+  pointer-events: none;
+}
+
+.artwork-protection-overlay {
+  position: fixed;
+  z-index: 1200;
+  inset: 0;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  max-width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  padding: max(24px, env(safe-area-inset-top)) max(22px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(22px, env(safe-area-inset-left));
+  background: rgb(5 5 5 / 84%);
+  color: #f5f5f5;
+  animation: artwork-protection-fade-in .24s ease-out both;
+  overscroll-behavior: contain;
+}
+
+.artwork-protection-backdrop {
+  position: absolute;
+  inset: -24px;
+  overflow: hidden;
+}
+
+.artwork-protection-backdrop::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgb(0 0 0 / 76%), rgb(8 8 8 / 88%));
+  content: '';
+}
+
+.artwork-protection-backdrop img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(22px);
+  opacity: .68;
+  transform: scale(1.08);
+}
+
+.artwork-protection-message {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 440px);
+  box-sizing: border-box;
+  padding: clamp(28px, 7vw, 48px);
+  border: 1px solid rgb(255 255 255 / 15%);
+  border-radius: 4px;
+  background: rgb(12 12 12 / 74%);
+  text-align: center;
+  box-shadow: 0 22px 80px rgb(0 0 0 / 32%);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.artwork-protection-kicker {
+  display: block;
+  margin-bottom: 17px;
+  color: #b8b8b8;
+  font-size: 10px;
+  letter-spacing: 2.2px;
+}
+
+.artwork-protection-message h2 {
+  margin: 0;
+  color: #f5f5f5;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(29px, 7vw, 39px);
+  font-weight: 500;
+  letter-spacing: -.6px;
+  line-height: 1.15;
+}
+
+.artwork-protection-message p {
+  margin: 17px 0 26px;
+  color: #c5c5c5;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.artwork-protection-message button {
+  min-height: 48px;
+  padding: 0 23px;
+  border: 1px solid #858585;
+  border-radius: 3px;
+  background: transparent;
+  color: #f5f5f5;
+  font: inherit;
+  font-size: 12px;
+  letter-spacing: .7px;
+  cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.artwork-protection-message button:hover,
+.artwork-protection-message button:focus-visible {
+  border-color: #f5f5f5;
+  background: #f5f5f5;
+  color: #111;
+}
+
+.artwork-protection-message button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+
+@keyframes artwork-protection-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (max-width: 420px) {
+  .protected-artwork-watermark {
+    right: 8px;
+    bottom: 8px;
+    font-size: 8px;
+  }
+
+  .artwork-protection-message {
+    padding: 30px 24px;
+  }
+
+  .artwork-protection-message p {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artwork-protection-overlay,
+  .artwork-protection-message button {
+    animation: none;
+    transition: none;
+  }
+}

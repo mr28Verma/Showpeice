@@ -1,0 +1,96 @@
+.authContent{position:relative;width:min(470px,100%);margin:auto;padding:20px 0 16px;color:#242424}
+.tabToggle{position:relative;width:184px;height:38px;display:flex;align-items:center;margin:0 0 24px;padding:3px;border:1px solid #dcdcdc;border-radius:999px;background:#ececec}
+.tabGlider{position:absolute;inset:3px auto 3px 3px;width:calc(50% - 3px);border-radius:999px;background:#282828;transition:transform .28s cubic-bezier(.16,1,.3,1)}
+.tabGlider.gliderRight{transform:translateX(100%)}
+.tabBtn{position:relative;z-index:1;flex:1;height:100%;border:0;background:transparent;color:#737373;font:500 11px 'DM Sans',sans-serif;cursor:pointer;transition:color .18s ease}
+.tabBtn.activeText{color:#f5f5f5}
+.headerRow{display:flex;align-items:flex-start;gap:10px;margin-bottom:20px}
+.headerRow>div{min-width:0}
+.eyebrow{margin-bottom:10px;color:#808080;font:600 8px 'DM Sans',sans-serif;letter-spacing:1.7px}
+.title{margin:0;color:#242424;font:500 clamp(36px,4vw,48px)/1.08 'Playfair Display',serif;letter-spacing:-1.45px}
+.intro{max-width:360px;margin:9px 0 0;color:#737373;font:400 11px/1.7 'DM Sans',sans-serif}
+.backArrowBtn{width:32px;height:32px;flex:0 0 32px;display:grid;place-items:center;margin-top:26px;border:1px solid #dadada;border-radius:50%;background:transparent;color:#4d4d4d;cursor:pointer}
+.form{display:grid;gap:15px}
+.roleSelector{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:0;padding:0;border:0}
+.fieldLabel{display:block;margin-bottom:7px;color:#545454;font:600 8px 'DM Sans',sans-serif;letter-spacing:.9px;text-transform:uppercase}
+.roleSelector .fieldLabel{grid-column:1/-1}
+.roleCard{min-height:62px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:5px;padding:10px 12px;border:1px solid #dadada;background:#fafafa;color:#373737;text-align:left;cursor:pointer;transition:border-color .18s ease,background .18s ease}
+.roleCard strong{font:600 10px 'DM Sans',sans-serif}
+.roleCard span{color:#7c7c7c;font:400 9px 'DM Sans',sans-serif}
+.roleCard.roleActive{border-color:#787878;background:#ededed}
+.inputRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.inputGroup{min-width:0;display:grid;gap:0}
+.inputGroup>input,.passwordWrap>input{width:100%;height:44px;padding:0 12px;border:1px solid #d8d8d8;border-radius:0;background:#fafafa;color:#242424;font:400 11px 'DM Sans',sans-serif;outline:none;transition:border-color .18s ease,box-shadow .18s ease}
+.inputGroup>input::placeholder,.passwordWrap>input::placeholder{color:#858585;opacity:1}
+.inputGroup>input:focus,.passwordWrap>input:focus{border-color:#818181;box-shadow:0 0 0 2px rgba(129, 129, 129, .11)}
+.passwordWrap{position:relative;display:flex;align-items:center}
+.passwordWrap>input{padding-right:46px}
+.passwordToggle{position:absolute;right:3px;width:38px;height:38px;display:grid;place-items:center;border:0;background:transparent;color:#737373;cursor:pointer}
+.formOptions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:-3px}
+.remember{display:flex;align-items:center;gap:7px;color:#737373;font:400 10px 'DM Sans',sans-serif}
+.remember input{width:14px;height:14px;accent-color:#4d4d4d}
+.formOptions>a{color:#4d4d4d;font:400 10px 'DM Sans',sans-serif;text-decoration:underline;text-underline-offset:3px}
+.submitBtn{min-height:47px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px;padding:0 15px;border:1px solid #282828;background:#282828;color:#f5f5f5;font:600 9px 'DM Sans',sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:background-color .18s ease,border-color .18s ease,transform .12s ease,opacity .18s ease}
+.submitBtn:hover:not(:disabled){background:#4e4e4e}
+.submitBtn:active:not(:disabled){transform:translateY(1px)}
+.submitBtn:disabled{cursor:wait;opacity:.68}
+.loadingIcon{animation:auth-spin 1s linear infinite}
+@keyframes auth-spin{to{transform:rotate(360deg)}}
+.divider{display:flex;align-items:center;gap:12px;margin:19px 0 12px;color:#848484;font:600 7px 'DM Sans',sans-serif;letter-spacing:1.2px}
+.divider:before,.divider:after{height:1px;flex:1;background:#dfdfdf;content:''}
+.socialRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.socialBtn{height:44px;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid #dadada;background:#fafafa;color:#5a5a5a;font:500 10px 'DM Sans',sans-serif;cursor:pointer;transition:border-color .18s ease,background-color .18s ease,color .18s ease,transform .12s ease}
+.socialBtn svg{width:16px;height:16px}
+.socialBtn:disabled{opacity:.58;cursor:not-allowed}
+.socialBtn:hover:not(:disabled){border-color:#9a9a9a;background:#f1f1f1}
+.socialBtn:active:not(:disabled){transform:translateY(1px)}
+.providerNote{margin:8px 0 0;color:#8d8d8d;font:400 9px/1.5 'DM Sans',sans-serif;text-align:center}
+.termsText{margin:14px 0 0;color:#7c7c7c;font:400 8px/1.6 'DM Sans',sans-serif;text-align:center}
+.termsText a{color:#4d4d4d;text-decoration:underline;text-underline-offset:2px}
+.status{margin:0;padding:10px 12px;background:#e9e9e9;color:#656565;font:400 10px/1.6 'DM Sans',sans-serif}
+.authContent :is(button,a,input):focus-visible{outline:2px solid #939393;outline-offset:3px}
+@media(max-width:850px){.authContent{padding-top:22px}.tabToggle{margin-bottom:22px}}
+@media(max-width:767px){.authContent{padding-top:0}.tabToggle{margin-bottom:18px}.headerRow{margin-bottom:18px}.form{gap:13px}}
+@media(max-width:520px){.authContent{padding:0 0 16px}.tabToggle{margin:0 0 18px}.title{font-size:36px}.inputRow{gap:8px}.roleCard{padding:9px 8px}.form{gap:12px}.divider{margin-top:16px}}
+@media(prefers-reduced-motion:reduce){.tabGlider,.tabBtn,.roleCard,.inputGroup>input,.passwordWrap>input,.submitBtn,.socialBtn{transition:none}.loadingIcon{animation:none}}
+
+.authContent{color:var(--text-primary)}
+.tabToggle{border-color:var(--border);background:var(--surface-raised)}
+.tabGlider{background:var(--text-primary)}
+.tabBtn{color:var(--text-secondary)}
+.tabBtn.activeText{color:var(--page-bg)}
+.eyebrow{color:var(--text-secondary)}
+.title{color:var(--text-primary)}
+.intro,.fieldLabel,.roleCard span,.remember,.providerNote,.termsText{color:var(--text-secondary)}
+.backArrowBtn{border-color:var(--border-strong);color:var(--text-primary)}
+.roleCard{border-color:var(--border-strong);background:var(--surface);color:var(--text-primary)}
+.roleCard.roleActive{border-color:#777;background:var(--surface-raised)}
+.inputGroup>input,.passwordWrap>input{border-color:var(--border-strong);background:var(--surface);color:var(--text-primary)}
+.inputGroup>input:focus,.passwordWrap>input:focus{border-color:#858585;box-shadow:0 0 0 2px rgba(245,245,245,.09)}
+.passwordToggle{color:var(--text-secondary)}
+.remember input{accent-color:#a3a3a3}
+.formOptions>a,.termsText a{color:#d0d0d0}
+.submitBtn{border-color:var(--text-primary);background:var(--text-primary);color:var(--page-bg)}
+.submitBtn:hover{background:#d6d6d6;color:var(--page-bg)}
+.submitBtn:hover:not(:disabled){border-color:#e2e2e2;background:#e2e2e2;color:var(--page-bg)}
+.divider{color:var(--text-secondary)}
+.divider:before,.divider:after{background:var(--border)}
+.socialBtn{border-color:rgba(151, 151, 151, .32);background:rgba(125, 125, 125, .075);color:#e7e7e7}
+.socialBtn:disabled{opacity:.78}
+.socialBtn svg{filter:none}
+.socialBtn:hover:not(:disabled){border-color:rgba(179, 179, 179, .5);background:rgba(125, 125, 125, .14);color:#f8f8f8}
+.socialBtn:focus-visible{outline-color:#939393}
+.socialBtn:disabled:first-child,.socialBtn:disabled:last-child{border-color:rgba(151, 151, 151, .32);background:rgba(125, 125, 125, .075);color:#e7e7e7}
+.status{border:1px solid var(--border);background:var(--surface-raised);color:var(--text-primary)}
+.authContent :is(button,a,input):focus-visible{outline-color:#939393}
+.inputGroup>input,.passwordWrap>input{border-radius:8px}
+.invalidLabel{color:#8e8e8e}
+.invalidGroup>input,.invalidGroup .passwordWrap>input{border-color:#707070;background:var(--surface)}
+.invalidGroup>input:focus,.invalidGroup .passwordWrap>input:focus{border-color:#7e7e7e;box-shadow:0 0 0 2px rgba(126, 126, 126, .14)}
+.invalidGroup :global(.showpeice-floating-input){border-color:#707070;background:var(--surface)}
+.invalidGroup :global(.showpeice-floating-input:focus){border-color:#7e7e7e;box-shadow:0 0 0 2px rgba(126, 126, 126, .14)}
+.passwordField{position:relative}
+.passwordField :global(.showpeice-floating-input){padding-right:46px}
+.passwordField .passwordToggle{top:50%;transform:translateY(-50%)}
+.fieldError{grid-column:1/-1;margin-top:6px;color:#8e8e8e;font:400 10px/1.45 'DM Sans',sans-serif}
+.statusError{border-color:rgba(112, 112, 112, .45);background:rgba(51, 51, 51, .16);color:#a0a0a0}

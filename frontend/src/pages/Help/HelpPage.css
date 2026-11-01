@@ -1,0 +1,9 @@
+.help-page{width:min(100%,1120px);min-height:54vh;margin:0 auto;padding:clamp(56px,7vw,92px) 24px clamp(76px,9vw,116px);color:var(--text-primary)}
+.help-page-heading{max-width:720px;margin:0 auto clamp(38px,5vw,58px);text-align:center}
+.help-page-heading>.eyebrow{justify-content:center;color:var(--text-secondary)}
+.help-page-heading>.eyebrow .eyebrow-line{background:var(--border-strong)}
+.help-page-heading h1{margin:18px 0 14px;color:var(--text-primary);font:500 clamp(46px,7vw,76px)/1.02 'Playfair Display',serif;letter-spacing:-2.4px}
+.help-page-heading>p{max-width:520px;margin:0 auto;color:var(--text-secondary);font-size:14px;line-height:1.8}
+.help-page-content{display:grid;justify-items:center;gap:clamp(38px,5vw,58px)}
+.help-page-content>section{width:100%;display:flex;justify-content:center;scroll-margin-top:110px}
+@media(max-width:600px){.help-page{padding:48px 20px 72px}.help-page-heading{margin-bottom:34px}.help-page-heading h1{margin:15px 0 12px;font-size:clamp(42px,12vw,56px);letter-spacing:-1.6px}.help-page-heading>p{max-width:390px;font-size:12px}.help-page-content{gap:34px}}

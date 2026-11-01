@@ -1,0 +1,213 @@
+.artist-settings {
+  width: min(100%, 680px);
+}
+
+.artist-settings-panel {
+  overflow: hidden;
+  border: 1px solid var(--studio-card-border);
+  border-radius: var(--studio-card-radius);
+  background: var(--studio-card-surface);
+}
+
+.artist-settings-row {
+  display: grid;
+  min-height: 72px;
+  grid-template-columns: minmax(0, 1fr) 56px;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--studio-line);
+  transition: background-color .18s ease;
+}
+
+.artist-settings-row:last-child {
+  border-bottom: 0;
+}
+
+.artist-settings-row:hover {
+  background: var(--studio-card-icon-bg);
+}
+
+.artist-settings-copy {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.artist-settings-title {
+  color: #eaeaea;
+  font: 600 15px/1.4 'DM Sans', sans-serif;
+}
+
+.artist-settings-description {
+  color: #9d9d9d;
+  font: 13px/1.45 'DM Sans', sans-serif;
+}
+
+.artist-settings-switch {
+  display: inline-flex;
+  width: 56px;
+  height: 30px;
+  align-items: center;
+  padding: 3px;
+  border: 0;
+  border-radius: 999px;
+  background: #c84646;
+  cursor: pointer;
+  transition: background-color .18s ease, box-shadow .18s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.artist-settings-switch:not(.is-on):hover {
+  background: #d45454;
+}
+
+.artist-settings-switch.is-on {
+  background: #238b57;
+}
+
+.artist-settings-switch.is-on:hover {
+  background: #2d9b64;
+}
+
+.artist-settings-switch:focus-visible {
+  outline: 2px solid var(--studio-focus);
+  outline-offset: 4px;
+}
+
+.artist-settings-switch-knob {
+  display: block;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateX(0);
+  transition: transform .24s cubic-bezier(.2, .75, .25, 1);
+}
+
+.artist-settings-switch.is-on .artist-settings-switch-knob {
+  transform: translateX(26px);
+}
+
+.artist-settings-note {
+  margin: 11px 2px 0;
+  color: #767676;
+  font: 11px/1.55 'DM Sans', sans-serif;
+}
+
+.artist-account-settings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 34px;
+  padding: 22px 20px;
+  border: 1px solid #542d31;
+  border-radius: var(--studio-card-radius);
+  background: linear-gradient(135deg, rgb(103 38 43 / 20%), var(--studio-card-surface) 58%);
+}
+
+.artist-account-settings-kicker {
+  color: #d38b91;
+  font: 600 10px/1 'DM Sans', sans-serif;
+  letter-spacing: 1.5px;
+}
+
+.artist-account-settings h2 {
+  margin: 9px 0 5px;
+  color: #f0eeee;
+  font: 500 20px/1.2 'Playfair Display', serif;
+}
+
+.artist-account-settings p {
+  margin: 0;
+  color: #aaa1a2;
+  font: 13px/1.5 'DM Sans', sans-serif;
+}
+
+.artist-logout-button,
+.artist-logout-confirm,
+.artist-logout-cancel {
+  min-height: 40px;
+  border-radius: 6px;
+  padding: 0 15px;
+  font: 600 12px 'DM Sans', sans-serif;
+  cursor: pointer;
+}
+
+.artist-logout-button,
+.artist-logout-confirm {
+  border: 1px solid #a84f57;
+  background: #8e3941;
+  color: #fff;
+}
+
+.artist-logout-button:hover,
+.artist-logout-confirm:hover { background: #aa454e; border-color: #bd5962; }
+
+.artist-logout-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(0 0 0 / 75%);
+}
+
+.artist-logout-dialog {
+  width: min(100%, 430px);
+  padding: 25px;
+  border: 1px solid var(--studio-card-border);
+  border-radius: var(--studio-card-radius);
+  background: #171717;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 45%);
+}
+
+.artist-logout-dialog h2 {
+  margin: 0;
+  color: #f1f1f1;
+  font: 500 25px/1.2 'Playfair Display', serif;
+}
+
+.artist-logout-dialog p { margin: 10px 0 22px; color: #aaa; font: 13px/1.55 'DM Sans', sans-serif; }
+
+.artist-logout-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.artist-logout-cancel { border: 1px solid #464646; background: transparent; color: #ddd; }
+.artist-logout-cancel:hover { background: #262626; }
+.artist-logout-button:focus-visible,
+.artist-logout-confirm:focus-visible,
+.artist-logout-cancel:focus-visible { outline: 2px solid var(--studio-focus); outline-offset: 3px; }
+
+@media (max-width: 520px) {
+  .artist-settings-row {
+    min-height: 70px;
+    grid-template-columns: minmax(0, 1fr) 54px;
+    gap: 12px;
+    padding: 13px 16px;
+  }
+
+  .artist-settings-title { font-size: 14px; }
+  .artist-settings-description { font-size: 12px; }
+  .artist-settings-switch.is-on .artist-settings-switch-knob { transform: translateX(24px); }
+  .artist-account-settings { align-items: flex-start; flex-direction: column; gap: 17px; padding: 19px 16px; }
+  .artist-logout-button { width: 100%; }
+  .artist-logout-dialog { padding: 21px; }
+}
+
+@media (max-width: 360px) {
+  .artist-settings-panel { border-radius: var(--studio-card-radius); }
+  .artist-settings-row { grid-template-columns: minmax(0, 1fr) 52px; gap: 9px; padding-inline: 12px; }
+  .artist-settings-switch { width: 52px; height: 28px; }
+  .artist-settings-switch-knob { width: 22px; height: 22px; flex-basis: 22px; }
+  .artist-settings-switch.is-on .artist-settings-switch-knob { transform: translateX(24px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artist-settings-row,
+  .artist-settings-switch,
+  .artist-settings-switch-knob {
+    transition: none;
+  }
+}

@@ -1,0 +1,820 @@
+/* ==========================================================================
+   Showpeice — Spotify-Inspired Artist Studio Profile Management
+   Matches the luxury public profile aesthetic:
+     --asp-bg: #0A0A0A
+     --asp-card: #141414
+     --asp-card-hover: #191919
+     --asp-border: #2A2A2A
+     --asp-border-hover: #3E3E3E
+     --asp-text: #F5F5F5
+     --asp-text-muted: #A1A1AA
+     --asp-accent: #FFFFFF
+     --asp-accent-hover: #D4D4D8
+     --asp-accent-muted: #1F1F1F
+   Typography:
+     Headings: 'Playfair Display', Georgia, serif
+     Body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif
+   ========================================================================== */
+
+.artist-studio-profile {
+  --asp-bg: #0A0A0A;
+  --asp-card: #141414;
+  --asp-card-hover: #181818;
+  --asp-border: #2A2A2A;
+  --asp-border-hover: #3E3E3E;
+  --asp-text: #F5F5F5;
+  --asp-text-muted: #A1A1AA;
+  --asp-accent: #FFFFFF;
+  --asp-accent-hover: #D4D4D8;
+  --asp-accent-muted: #1F1F1F;
+  --asp-line: #222222;
+
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 1280px;
+  min-width: 0;
+  margin: 0 auto;
+  color: var(--asp-text);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Empty / Error State
+   -------------------------------------------------------------------------- */
+.artist-studio-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  padding: 48px 24px;
+  background: var(--asp-card);
+  border: 1px solid var(--asp-border);
+  border-radius: 16px;
+  text-align: center;
+}
+
+.artist-studio-empty h2 {
+  font: 500 26px 'Playfair Display', Georgia, serif;
+  color: var(--asp-text);
+  margin: 0 0 8px;
+}
+
+.artist-studio-empty p {
+  color: var(--asp-text-muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Hero Identity Banner (Spotify for Artists Inspired Header)
+   -------------------------------------------------------------------------- */
+.artist-studio-hero {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--asp-border);
+  background: #0E0E0E;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: clamp(340px, 40vh, 440px);
+  padding: clamp(24px, 4vw, 42px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+}
+
+.artist-studio-hero-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.07), transparent 32%),
+    radial-gradient(circle at 82% 8%, rgba(119, 84, 163, 0.16), transparent 38%),
+    linear-gradient(135deg, #171717 0%, #0b0b0b 48%, #15110f 100%);
+}
+
+.artist-studio-hero-backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  filter: brightness(0.45) contrast(1.1) saturate(1.1);
+  transform: scale(1.02);
+  transition: transform 0.8s ease;
+}
+
+.artist-studio-hero:hover .artist-studio-hero-backdrop-img {
+  transform: scale(1.035);
+}
+
+.artist-studio-hero-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at 15% 90%, rgba(10, 10, 10, 0.98) 0%, rgba(10, 10, 10, 0.7) 50%, transparent 85%),
+    linear-gradient(180deg, rgba(10, 10, 10, 0.3) 0%, rgba(10, 10, 10, 0.65) 50%, #0A0A0A 100%);
+  pointer-events: none;
+}
+
+/* Top bar inside the hero */
+.artist-studio-hero-top {
+  position: absolute;
+  top: 24px;
+  left: clamp(24px, 4vw, 42px);
+  right: clamp(24px, 4vw, 42px);
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.artist-studio-verified-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: var(--asp-text);
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(15, 15, 15, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--asp-border);
+}
+
+.artist-studio-verified-pill .pill-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22C55E;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.4);
+  color: #FFFFFF;
+}
+
+.artist-studio-verified-pill .pill-check-mark {
+  display: block;
+  width: 11px;
+  height: 11px;
+  color: #FFFFFF;
+  stroke: #FFFFFF;
+}
+
+.artist-studio-status-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.artist-studio-copy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--asp-text-muted);
+  background: rgba(15, 15, 15, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--asp-border);
+  border-radius: 999px;
+  padding: 6px 13px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.artist-studio-copy-link:hover {
+  border-color: var(--asp-accent);
+  color: var(--asp-accent);
+}
+
+/* Hero Bottom Content (Avatar, Titles, Actions) */
+.artist-studio-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-top: 50px;
+}
+
+.artist-studio-identity-block {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  min-width: 0;
+}
+
+.artist-studio-avatar-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  flex-shrink: 0;
+}
+
+.artist-studio-avatar {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 2px solid var(--asp-border);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6);
+  background: var(--asp-card);
+}
+
+.artist-studio-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.artist-studio-avatar-status {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  box-sizing: border-box;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #151515;
+  border-radius: 50%;
+  background: #22c55e;
+  z-index: 2;
+}
+
+.artist-studio-monogram {
+  font: 500 36px 'Playfair Display', Georgia, serif;
+  color: var(--asp-accent);
+}
+
+.artist-studio-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.artist-studio-kicker {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--asp-accent);
+}
+
+.artist-studio-title {
+  margin: 0;
+  font: 600 clamp(32px, 4.2vw, 54px)/1.08 'Playfair Display', Georgia, serif;
+  color: var(--asp-text);
+  letter-spacing: -1px;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.7);
+}
+
+.artist-studio-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  font-size: 13px;
+  color: #c7c7c7;
+}
+
+.artist-studio-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.artist-studio-meta-item.specialty {
+  color: var(--asp-accent);
+  font-weight: 500;
+}
+
+.artist-studio-meta-dot {
+  color: #555;
+}
+
+.artist-studio-bio-snippet {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--asp-text-muted);
+  max-width: 60ch;
+  line-height: 1.6;
+}
+
+/* Hero Action Buttons */
+.artist-studio-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.artist-studio-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 22px;
+  border-radius: 10px;
+  background: var(--asp-accent);
+  border: 1px solid var(--asp-accent);
+  color: #0A0A0A;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.artist-studio-primary-button:hover {
+  background: var(--asp-accent-hover);
+  border-color: var(--asp-accent-hover);
+  transform: translateY(-1px);
+}
+
+.artist-studio-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 10px;
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--asp-border);
+  color: var(--asp-text);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.artist-studio-secondary-button:hover {
+  background: #1C1C1C;
+  border-color: var(--asp-accent);
+  color: var(--asp-accent);
+  transform: translateY(-1px);
+}
+
+/* --------------------------------------------------------------------------
+   Studio Statistics Bar
+   -------------------------------------------------------------------------- */
+.artist-studio-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.artist-studio-stat-card {
+  padding: 20px 22px;
+  background: var(--asp-card);
+  border: 1px solid var(--asp-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.artist-studio-stat-card:hover {
+  border-color: var(--asp-border-hover);
+  transform: translateY(-2px);
+}
+
+.artist-studio-stat-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--asp-text-muted);
+}
+
+.artist-studio-stat-label svg {
+  color: var(--asp-accent);
+}
+
+.artist-studio-stat-card strong {
+  font: 600 clamp(24px, 2.5vw, 32px)/1.1 'Playfair Display', Georgia, serif;
+  color: var(--asp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.artist-studio-stat-card small {
+  font-size: 11px;
+  color: var(--asp-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Sub-Navigation Tabs (Overview / Edit / Security)
+   -------------------------------------------------------------------------- */
+.artist-studio-tabs-bar {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid var(--asp-border);
+  padding: 0 4px;
+}
+
+.artist-studio-tab-btn {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: var(--asp-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 12px 2px;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.artist-studio-tab-btn:hover {
+  color: var(--asp-text);
+}
+
+.artist-studio-tab-btn.is-active {
+  color: var(--asp-text);
+  font-weight: 600;
+}
+
+.artist-studio-tab-indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--asp-accent);
+}
+
+/* --------------------------------------------------------------------------
+   Two-Column Profile Details View (Overview Mode)
+   -------------------------------------------------------------------------- */
+.artist-studio-grid-2col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.artist-studio-card {
+  padding: 28px;
+  background: var(--asp-card);
+  border: 1px solid var(--asp-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.artist-studio-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--asp-line);
+}
+
+.artist-studio-card-header h3 {
+  margin: 4px 0 0;
+  font: 500 22px 'Playfair Display', Georgia, serif;
+  color: var(--asp-text);
+}
+
+.artist-studio-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.artist-studio-detail-item {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(42, 42, 42, 0.4);
+  font-size: 13px;
+}
+
+.artist-studio-detail-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.artist-studio-detail-item dt {
+  color: var(--asp-text-muted);
+}
+
+.artist-studio-detail-item dd {
+  margin: 0;
+  color: var(--asp-text);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.artist-studio-detail-item dd.bio-text {
+  font-weight: 400;
+  color: #d8d8d8;
+  line-height: 1.7;
+}
+
+.artist-studio-detail-item dd a {
+  color: var(--asp-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.artist-studio-detail-item dd a:hover {
+  color: var(--asp-accent-hover);
+}
+
+/* --------------------------------------------------------------------------
+   Edit Profile Form (Sleek Spotify Style)
+   -------------------------------------------------------------------------- */
+.artist-studio-edit-panel {
+  width: 100%;
+  min-width: 0;
+  padding: clamp(24px, 4vw, 36px);
+  background: var(--asp-card);
+  border: 1px solid var(--asp-border);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.artist-studio-form-grid {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.artist-studio-form-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.artist-studio-form-field.is-wide {
+  grid-column: 1 / -1;
+}
+
+.artist-studio-form-field label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--asp-text-muted);
+}
+
+.artist-studio-form-field input:not([type="checkbox"]),
+.artist-studio-form-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: #0D0D0D;
+  border: 1px solid var(--asp-border);
+  border-radius: 10px;
+  color: var(--asp-text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.artist-studio-form-field input:focus,
+.artist-studio-form-field textarea:focus {
+  border-color: var(--asp-accent);
+}
+
+.artist-studio-form-field textarea {
+  resize: vertical;
+}
+
+.artist-studio-char-count {
+  align-self: flex-end;
+  font-size: 11px;
+  color: #777;
+}
+
+/* Avatar Upload Dropzone */
+.artist-studio-image-uploads {
+  grid-column: 1 / -1;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  align-items: stretch;
+  gap: 18px 20px;
+}
+
+.artist-studio-image-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.artist-studio-edit-panel .artist-studio-card-header,
+.artist-studio-form-actions {
+  flex-wrap: wrap;
+}
+
+.artist-studio-image-field > .artwork-file-upload {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.artist-studio-image-field .artwork-file-upload-avatar .artwork-file-dropzone,
+.artist-studio-image-field .artwork-file-upload-banner:not(.has-saved-banner) .artwork-file-dropzone {
+  flex: 1 1 auto;
+}
+
+.artist-studio-image-field .artwork-file-upload-banner.has-saved-banner .artwork-file-banner-preview {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.artist-studio-image-field .artwork-file-banner-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Checkbox row */
+.artist-studio-checkbox-field {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #0E0E0E;
+  border: 1px solid var(--asp-border);
+  border-radius: 12px;
+}
+
+.artist-studio-checkbox-field input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--asp-accent);
+  margin-top: 2px;
+}
+
+.artist-studio-checkbox-field label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--asp-text);
+  cursor: pointer;
+}
+
+.artist-studio-checkbox-field small {
+  font-size: 11px;
+  color: var(--asp-text-muted);
+  font-weight: 400;
+}
+
+.artist-studio-form-error {
+  padding: 12px 16px;
+  background: rgba(77, 77, 77, 0.15);
+  border: 1px solid rgba(77, 77, 77, 0.4);
+  color: #bfbfbf;
+  font-size: 13px;
+  border-radius: 10px;
+}
+
+.artist-studio-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--asp-line);
+}
+
+/* --------------------------------------------------------------------------
+   Password / Security Card
+   -------------------------------------------------------------------------- */
+.artist-studio-password-box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.artist-studio-password-box h4 {
+  margin: 0;
+  font: 500 18px 'Playfair Display', Georgia, serif;
+  color: var(--asp-text);
+}
+
+/* --------------------------------------------------------------------------
+   Accessibility & Responsive
+   -------------------------------------------------------------------------- */
+.artist-studio-profile button:focus-visible,
+.artist-studio-profile a:focus-visible,
+.artist-studio-profile input:focus-visible,
+.artist-studio-profile textarea:focus-visible {
+  outline: 2px solid var(--asp-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 980px) {
+  .artist-studio-grid-2col {
+    grid-template-columns: 1fr;
+  }
+  .artist-studio-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .artist-studio-hero-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .artist-studio-hero-actions {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .artist-studio-hero {
+    min-height: 380px;
+    padding: 20px;
+  }
+  .artist-studio-hero-top {
+    position: static;
+    margin-bottom: 20px;
+  }
+  .artist-studio-identity-block {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .artist-studio-avatar-wrap {
+    width: 80px;
+    height: 80px;
+  }
+  .artist-studio-title {
+    font-size: 32px;
+  }
+  .artist-studio-stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .artist-studio-stat-card {
+    padding: 14px;
+  }
+  .artist-studio-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .artist-studio-image-uploads {
+    grid-template-columns: 1fr;
+  }
+  .artist-studio-detail-item {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .artist-studio-tabs-bar {
+    gap: 18px;
+  }
+  .artist-studio-tab-btn {
+    font-size: 11px;
+    padding: 12px 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .artist-studio-hero-backdrop-img,
+  .artist-studio-stat-card,
+  .artist-studio-primary-button,
+  .artist-studio-secondary-button,
+  .artist-studio-tab-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+}

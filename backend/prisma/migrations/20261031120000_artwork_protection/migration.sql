@@ -1,0 +1,1 @@
+ALTER TABLE "Artwork" ADD COLUMN "isProtected" BOOLEAN NOT NULL DEFAULT false;

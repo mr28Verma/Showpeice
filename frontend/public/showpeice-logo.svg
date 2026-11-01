@@ -1,0 +1,17 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#000000"></rect>
+
+  <!-- Outer circular symbol -->
+  <circle cx="256" cy="256" r="180" fill="#FFFFFF"></circle>
+  <circle cx="256" cy="256" r="126" fill="#000000"></circle>
+
+  <!-- Opening at the bottom -->
+  <path d="M145 367 L256 256 L367 367 L367 512 L145 512 Z" fill="#000000"></path>
+
+  <!-- Central geometric diamond -->
+  <path d="M256 136 L376 256 L256 376 L136 256 Z" fill="#000000"></path>
+
+  <!-- White facet inside the diamond -->
+  <path d="M250 157 L250 286 L157 258 Z" fill="#FFFFFF"></path>
+</svg>

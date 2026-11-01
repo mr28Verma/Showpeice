@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
+
+:root{font-family:'DM Sans',sans-serif;color:#F5F5F5;background:#0A0A0A;font-synthesis:none;text-rendering:optimizeLegibility;font-optical-sizing:auto;font-weight:400}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-width:320px;min-height:100vh}button,input{font:inherit}button{color:inherit}a{color:inherit;text-decoration:none}img{display:block;max-width:100%}::selection{background:#2A2A2A;color:#FFFFFF}
+
+.dashboard-access-state{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;background:var(--page-bg,#0A0A0A);color:var(--text-primary,#F5F5F5);text-align:center}
+.dashboard-access-state h1{margin:0;font:500 clamp(28px,5vw,42px) 'Playfair Display',serif}
+.dashboard-access-state p{max-width:480px;margin:0;color:var(--text-secondary,#A1A1AA);line-height:1.7}
+.dashboard-access-state button{min-height:42px;padding:0 18px;border:1px solid var(--border-strong,#555);background:transparent;color:inherit;cursor:pointer}
+.dashboard-access-state a{padding:8px;color:var(--text-secondary,#A1A1AA);text-decoration:underline;text-underline-offset:4px}
