@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { ArrowRight, ArrowUpRight, Heart, ShoppingBag } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Check, Heart, RefreshCw, ShoppingBag } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { artwork as art } from '../../data/artworks'
 import { useMarket } from '../../features/gallery/MarketContext'
@@ -10,6 +10,8 @@ import { InfiniteMovingCards } from '../../components/ui/infinite-moving-cards'
 import { DraggableCardBody, DraggableCardContainer } from '../../components/ui/draggable-card'
 import { CanvasText } from '../../components/ui/canvas-text'
 import { ProtectedArtworkImage } from '../../components/ProtectedArtworkImage'
+import { Skeleton } from '../../components/ui/Skeleton'
+import { toast } from '../../components/ui/toast'
 import { JournalSection } from '../Blog/BlogPages'
 
 const photo = (id: string, width = 900) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`
@@ -26,8 +28,8 @@ const newsletterCanvasColors = [
 ]
 export function HomePage() {
   const navigate = useNavigate()
-  const { query, setQuery, favorites, toggleFavorite } = useMarket()
-  const { addItem } = useCart()
+  const { query, setQuery, favorites, favoritesLoading, favoritesError, retryFavorites, toggleFavorite } = useMarket()
+  const { addItem, items: cartItems } = useCart()
   const [email, setEmail] = useState('')
   const [subscribing, setSubscribing] = useState(false)
   const [subscribed, setSubscribed] = useState(false)
@@ -100,6 +102,7 @@ export function HomePage() {
             <DraggableCardContainer className="draggable-artwork-stage">
               {visibleArt.map((item, index) => {
                 const isFavorite = favorites.includes(item.id)
+                const isInBag = cartItems.some((cartItem) => cartItem.id === item.id)
                 return (
                   <DraggableCardBody key={item.id} className={`draggable-artwork-card draggable-artwork-card--${index + 1}`}>
                     <Link className="draggable-artwork-image" to={`/artwork/${item.id}`} aria-label={`View ${item.title}`}>
@@ -112,11 +115,18 @@ export function HomePage() {
                         <Link className="draggable-artwork-artist" to={`/artist/${item.artistId}`}>{item.artist}</Link>
                       </div>
                       <div className="draggable-artwork-actions">
-                        <button className={isFavorite ? 'is-favorite' : ''} type="button" aria-label={`${isFavorite ? 'Remove' : 'Add'} ${item.title} ${isFavorite ? 'from' : 'to'} favourites`} aria-pressed={isFavorite} onClick={() => toggleFavorite(item.id)}>
-                          <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />
+                        <button className={isFavorite ? 'is-favorite' : ''} type="button" aria-label={favoritesError ? 'Retry loading saved artworks' : `${isFavorite ? 'Remove' : 'Add'} ${item.title} ${isFavorite ? 'from' : 'to'} favourites`} aria-pressed={favoritesError ? undefined : isFavorite} aria-busy={favoritesLoading} onClick={() => favoritesError ? retryFavorites() : toggleFavorite(item.id)}>
+                          {favoritesLoading ? <Skeleton shape="circle" className="favorite-action-skeleton" /> : favoritesError ? <RefreshCw size={15} aria-hidden="true" /> : <Heart size={16} fill={isFavorite ? 'currentColor' : 'none'} />}
                         </button>
-                        <button type="button" aria-label={`Add ${item.title} to bag`} onClick={() => addItem({ id: item.id, title: item.title, artist: item.artist, price: formatINR(item.price), image: photo(item.image, 500), isProtected: item.isProtected })}>
-                          <ShoppingBag size={16} />
+                        <button className={isInBag ? 'is-in-bag' : ''} type="button" aria-label={isInBag ? `${item.title} is in your bag` : `Add ${item.title} to bag`} aria-pressed={isInBag} onClick={async () => {
+                          try {
+                            await addItem({ id: item.id, title: item.title, artist: item.artist, price: formatINR(item.price), image: photo(item.image, 500), isProtected: item.isProtected })
+                            toast.success('Artwork added to your bag', item.title)
+                          } catch (error) {
+                            toast.error('Artwork could not be added', error instanceof Error ? error.message : 'Please try again.')
+                          }
+                        }}>
+                          {isInBag ? <Check size={16} /> : <ShoppingBag size={16} />}
                         </button>
                       </div>
                     </div>
@@ -151,4 +161,3 @@ export function HomePage() {
     </main>
 
 }
-

@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const prisma = require('../prisma');
 const requireAuth = require('../middleware/requireAuth');
+const { isDatabaseUnavailable } = require('../utils/databaseErrors');
 
 const router = express.Router();
 
@@ -10,21 +11,30 @@ const router = express.Router();
 
 router.post('/register', async (req, res) => {
     try {
-        const { firstName, lastName, email, password } = req.body;
-        const role = req.body.role ?? 'buyer';
+        const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body)
+            ? req.body
+            : {};
+        const { firstName, lastName, email, password } = body;
+        const role = body.role ?? 'buyer';
 
-        if (!['buyer', 'seller'].includes(role)) {
+        if (!process.env.JWT_SECRET) {
+            console.error('[auth] JWT_SECRET is not configured');
+            return res.status(503).json({ message: 'Authentication is temporarily unavailable.' });
+        }
+
+        if (typeof role !== 'string' || !['buyer', 'seller'].includes(role)) {
             return res.status(400).json({ message: 'Please choose a valid account type' });
         }
 
-        
-        if (!firstName?.trim() || !lastName?.trim() || !email?.trim() || !password) {
+        if (typeof firstName !== 'string' || !firstName.trim() ||
+            typeof lastName !== 'string' || !lastName.trim() ||
+            typeof email !== 'string' || !email.trim() ||
+            typeof password !== 'string' || !password) {
             return res.status(400).json({
                 message: 'All fields are required'
             });
         }
 
-        
         const normalizedEmail = email.trim().toLowerCase();
 
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
@@ -33,14 +43,12 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        
         if (password.length < 8) {
             return res.status(400).json({
                 message: 'Password must be at least 8 characters long'
             });
         }
 
-        
         const existingUser = await prisma.user.findUnique({
             where: { email: normalizedEmail }
         });
@@ -51,7 +59,6 @@ router.post('/register', async (req, res) => {
             });
         }
 
-        
         const hashedPassword = await bcrypt.hash(password, 12);
 
         const user = await prisma.user.create({
@@ -65,14 +72,6 @@ router.post('/register', async (req, res) => {
             select: { id: true, firstName: true, lastName: true, email: true, role: true }
         });
 
-        
-        if (!process.env.JWT_SECRET) {
-            console.error('JWT_SECRET is not configured');
-            return res.status(500).json({
-                message: 'Internal server error'
-            });
-        }
-
         const token = jwt.sign(
             {
                 userId: user.id,
@@ -83,7 +82,6 @@ router.post('/register', async (req, res) => {
             { expiresIn: '1h' }
         );
 
-        
         return res.status(201).json({
             message: 'Registration successful',
             token,
@@ -97,14 +95,18 @@ router.post('/register', async (req, res) => {
         });
 
     } catch (error) {
-        
         if (error.code === 'P2002') {
             return res.status(409).json({
                 message: 'An account with this email already exists'
             });
         }
 
-        console.error('Registration error:', error.message);
+        console.error('[auth] Registration failed:', error.code || error.name || 'unknown error');
+        if (isDatabaseUnavailable(error)) {
+            return res.status(503).json({
+                message: 'The account service cannot reach the database right now. Please try again shortly.'
+            });
+        }
 
         return res.status(500).json({
             message: 'Internal server error'
@@ -116,9 +118,12 @@ router.post('/register', async (req, res) => {
 
 router.post('/login', async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body)
+            ? req.body
+            : {};
+        const { email, password } = body;
 
-        if (!email || !password) {
+        if (typeof email !== 'string' || !email.trim() || typeof password !== 'string' || !password) {
             return res.status(400).json(
                 { message: 'Email and password are required' }
             );
@@ -172,8 +177,13 @@ router.post('/login', async (req, res) => {
     }
     catch (error) {
         console.error('[auth] Login failed:', error.code || error.name || 'unknown error');
+        if (isDatabaseUnavailable(error)) {
+            return res.status(503).json({
+                message: 'The account service cannot reach the database right now. Please try again shortly.'
+            });
+        }
         return res.status(500).json(
-            { message: 'Internal server error' }
+            { message: 'Sign in could not be completed. Please try again shortly.' }
         );
     }
 

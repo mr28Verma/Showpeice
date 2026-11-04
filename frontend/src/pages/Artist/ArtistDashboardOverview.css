@@ -370,13 +370,6 @@
 
 .overview-skeleton-screen { min-width: 0; }
 .overview-skeleton-content { pointer-events: none; }
-.overview-skeleton-block {
-  display: block;
-  border-radius: 5px;
-  background: linear-gradient(100deg, #171717 18%, #202020 42%, #171717 68%);
-  background-size: 220% 100%;
-  animation: overview-skeleton-shimmer 1.8s ease-in-out infinite;
-}
 
 .overview-skeleton-header .studio-overview-header-actions { gap: 20px; }
 .overview-skeleton-kicker { width: 132px; height: 10px; }
@@ -399,6 +392,7 @@
 .overview-skeleton-actions .overview-skeleton-action { width: 130px; height: 38px; }
 .overview-skeleton-actions .overview-skeleton-profile-link { width: 120px; height: 12px; }
 
+.overview-stat .overview-skeleton-stat-icon { width: 16px; height: 16px; }
 .overview-stat .overview-skeleton-stat-label { width: min(132px, 80%); height: 12px; }
 .overview-stat .overview-skeleton-stat-value { width: 66px; height: 27px; margin-top: 12px; }
 .overview-stat .overview-skeleton-stat-note { width: min(110px, 74%); height: 10px; margin-top: 5px; }
@@ -427,11 +421,6 @@
 .overview-skeleton-status { position: absolute; top: 10px; left: 10px; width: 68px; height: 23px; border: 1px solid var(--studio-line); }
 .overview-skeleton-art-title { width: 68%; height: 14px; }
 .overview-skeleton-art-price { width: 48px; height: 11px; }
-
-@keyframes overview-skeleton-shimmer {
-  from { background-position: 100% 0; }
-  to { background-position: -120% 0; }
-}
 
 @media (max-width: 1050px) {
   .overview-featured { grid-template-columns: minmax(0, 56%) minmax(0, 44%); }
@@ -485,5 +474,4 @@
 
 @media (prefers-reduced-motion: reduce) {
   .overview-featured-image > img, .overview-art-thumb > img, .overview-card-edit, .overview-secondary-action, .overview-text-action { transition: none; }
-  .overview-skeleton-block { animation: none; background-position: 50% 0; }
 }

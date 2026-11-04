@@ -6,6 +6,8 @@ export type ExpandableActionBarItem = {
   icon: ReactNode
   onClick: () => void
   badge?: boolean
+  pressed?: boolean
+  disabled?: boolean
   intent?: 'default' | 'danger'
 }
 
@@ -25,14 +27,14 @@ export function ExpandableActionBar({ items, ariaLabel = 'Artwork actions', clas
           type="button"
           key={item.label}
           aria-label={item.label}
-          title={item.label}
+          aria-pressed={item.pressed}
+          disabled={item.disabled}
           onClick={event => {
             event.stopPropagation()
             item.onClick()
           }}
         >
           <span className="expandable-action-bar__icon" aria-hidden="true">{item.icon}</span>
-          <span className="expandable-action-bar__label" aria-hidden="true">{item.label}</span>
           {item.badge && <span className="expandable-action-bar__badge" aria-hidden="true" />}
         </button>
       ))}

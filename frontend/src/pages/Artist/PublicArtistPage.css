@@ -277,6 +277,18 @@
   color: #5f5f5f;
 }
 
+.spotify-shop-announcement {
+  width: fit-content;
+  max-width: min(100%, 620px);
+  margin: -4px 0 20px;
+  padding: 10px 13px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+  background: rgb(10 10 10 / 48%);
+  color: #f0eeee;
+  font: 13px/1.55 'DM Sans', sans-serif;
+}
+
 /* Hero Action Bar */
 .spotify-hero-actions {
   display: flex;

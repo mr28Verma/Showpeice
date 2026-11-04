@@ -1,58 +1,19 @@
-import { useState } from 'react'
-import { ArrowRight, Loader2 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { CartLineItemsSkeleton, Skeleton } from '../../components/ui/Skeleton'
 import { useCart } from '../../features/cart/CartContext'
 import { CartLineItems } from '../../features/cart/CartModal'
 import { formatINR } from '../../utils/formatCurrency'
-import { toast } from '../../components/ui/toast'
-import { apiUrl } from '../../lib/api'
+import { getLogoDestination } from '../../lib/logoDestination'
 
 export function CartPage() {
-  const { items, itemCount, subtotal, clearCart } = useCart()
-  const navigate = useNavigate()
-  const [checkingOut, setCheckingOut] = useState(false)
+  const { items, itemCount, subtotal, loading, error, retry } = useCart()
+
   const token = localStorage.getItem('showpeice_token')
-
-  const handleCheckout = async () => {
-    if (!token) {
-      navigate('/login?returnTo=%2Fcart')
-      return
-    }
-
-    if (items.length === 0) return
-
-    setCheckingOut(true)
-    try {
-      const response = await fetch(apiUrl('/buyer/orders/checkout'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          items: items.map((i) => ({ artworkId: i.id, quantity: i.quantity })),
-          paymentMethod: 'card',
-        }),
-      })
-
-      const data = await response.json().catch(() => ({}))
-      if (!response.ok) {
-        throw new Error(data.error || 'Checkout failed.')
-      }
-
-      clearCart()
-      toast.success('Order placed successfully', `Order #${data.order?.orderNumber || ''} created.`)
-      navigate('/buyer/dashboard?section=orders')
-    } catch (err) {
-      toast.error('Checkout failed', err instanceof Error ? err.message : 'Please try again.')
-    } finally {
-      setCheckingOut(false)
-    }
-  }
 
   return (
     <main className="cart-page">
-      <Link className="wordmark cart-wordmark" to="/" aria-label="Showpeice home">
+      <Link className="wordmark cart-wordmark" to={getLogoDestination()} aria-label="Showpeice home">
         <img className="brand-logo" src="/showpeice-logo.svg" alt="" />
         <strong>Showpeice</strong>
       </Link>
@@ -61,13 +22,29 @@ export function CartPage() {
           <span className="eyebrow-line" /> YOUR COLLECTION
         </div>
         <h1>
-          Your Bag <span>({itemCount})</span>
+          Your Bag {loading ? <Skeleton className="cart-bag-count-skeleton" /> : <span>({itemCount})</span>}
         </h1>
-        {items.length === 0 ? (
+        {loading ? (
+          <div className="cart-page-skeleton" role="status" aria-label="Loading shopping bag" aria-busy="true">
+            <CartLineItemsSkeleton count={2} />
+            <div className="cart-skeleton-subtotal" aria-hidden="true">
+              <Skeleton shape="text" className="cart-skeleton-subtotal-label" />
+              <Skeleton shape="text" className="cart-skeleton-subtotal-value" />
+            </div>
+            <Skeleton shape="text" className="cart-skeleton-note" />
+            <Skeleton className="cart-skeleton-checkout" />
+          </div>
+        ) : error ? (
+          <div role="alert">
+            <h2>{error.status === 404 ? 'An artwork is no longer available.' : error.status === 500 ? 'Your bag could not be loaded.' : 'Could not connect to your bag.'}</h2>
+            <p className="cart-auth-note">{error.message}</p>
+            <button type="button" className="auth-submit cart-continue" onClick={retry}>Try again</button>
+          </div>
+        ) : items.length === 0 ? (
           <>
             <p>Your bag is waiting. When a piece feels like yours, you’ll find it here.</p>
-            <Link className="auth-submit cart-continue" to="/#artwork">
-              Discover artwork <ArrowRight size={16} />
+            <Link className="auth-submit cart-continue" to="/gallery">
+              Explore Artwork <ArrowRight size={16} />
             </Link>
           </>
         ) : (
@@ -79,27 +56,20 @@ export function CartPage() {
             </div>
             <p>Shipping and provenance insurance are included at checkout.</p>
             {token ? (
-              <button
-                type="button"
-                className="auth-submit cart-continue"
-                onClick={handleCheckout}
-                disabled={checkingOut}
-                style={{ cursor: checkingOut ? 'not-allowed' : 'pointer' }}
-              >
-                {checkingOut ? (
-                  <>
-                    <Loader2 size={16} className="buyer-spin" />
-                    <span>Processing Acquisition...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Proceed to Checkout</span>
-                    <ArrowRight size={16} />
-                  </>
-                )}
-              </button>
+              <>
+                <p className="cart-auth-note" role="status">
+                  Secure payment processing is not configured. No order will be placed.
+                </p>
+                <button
+                  type="button"
+                  className="auth-submit cart-continue"
+                  disabled
+                >
+                  Checkout unavailable
+                </button>
+              </>
             ) : (
-              <Link className="auth-submit cart-continue" to="/login?returnTo=%2Fcart">
+              <Link className="auth-submit auth-pill-button auth-cta-pill cart-continue" to="/login?returnTo=%2Fcart">
                 Sign in to Complete Checkout <ArrowRight size={16} />
               </Link>
             )}

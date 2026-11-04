@@ -1,6 +1,7 @@
-import { useEffect, useId, useRef, useState, type ImgHTMLAttributes, type PointerEvent as ReactPointerEvent, type SyntheticEvent } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type ImgHTMLAttributes, type PointerEvent as ReactPointerEvent, type SyntheticEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { lockBodyScroll } from '../lib/body-scroll-lock'
+import './ui/skeleton.css'
 import './ProtectedArtworkImage.css'
 
 const protectionMessage = 'This artwork is protected by Showpeice. Unauthorized downloading and reproduction are not permitted.'
@@ -19,9 +20,18 @@ export function ProtectedArtworkImage({ isProtected = false, className, alt = ''
   const returnFocusRef = useRef<HTMLElement | null>(null)
   const longPressTimerRef = useRef<number | null>(null)
   const longPressTriggeredRef = useRef(false)
+  const imageRef = useRef<HTMLImageElement>(null)
+  const imageSrc = typeof imageProps.src === 'string' ? imageProps.src : ''
+  const [loadedSrc, setLoadedSrc] = useState('')
+  const isImageLoading = Boolean(imageSrc) && loadedSrc !== imageSrc
   const titleId = useId()
   const descriptionId = useId()
   const showDomWatermark = isProtected && !String(imageProps.src ?? '').includes('/api/artworks/')
+
+  useLayoutEffect(() => {
+    const image = imageRef.current
+    if (imageSrc && image?.complete && image.naturalWidth > 0) setLoadedSrc(imageSrc)
+  }, [imageSrc])
 
   const clearLongPressTimer = () => {
     if (longPressTimerRef.current !== null) window.clearTimeout(longPressTimerRef.current)
@@ -104,10 +114,20 @@ export function ProtectedArtworkImage({ isProtected = false, className, alt = ''
   }
 
   const image = <img
+    ref={imageRef}
     {...imageProps}
-    className={`${className ?? ''}${isProtected ? ' protected-artwork-image' : ''}`.trim()}
+    className={`${className ?? ''} showpeice-artwork-image${isProtected ? ' protected-artwork-image' : ''}`.trim()}
     alt={alt}
+    data-showpeice-loading={isImageLoading ? 'true' : 'false'}
     draggable={!isProtected}
+    onLoad={(event) => {
+      setLoadedSrc(imageSrc)
+      imageProps.onLoad?.(event)
+    }}
+    onError={(event) => {
+      setLoadedSrc(imageSrc)
+      imageProps.onError?.(event)
+    }}
     onContextMenu={handleContextMenu}
     onDragStart={isProtected ? (event) => event.preventDefault() : undefined}
     onPointerDown={handlePointerDown}

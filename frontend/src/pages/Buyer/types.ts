@@ -10,6 +10,7 @@ export type BuyerUser = {
   avatarUrl: string | null
   location: string | null
   emailNotifications: boolean
+  orderNotifications: boolean
   createdAt: string
 }
 
@@ -94,4 +95,4 @@ export type BuyerDashboardData = {
   recentOrders: Order[]
 }
 
-export type BuyerSection = 'overview' | 'profile' | 'orders' | 'addresses' | 'settings'
+export type BuyerSection = 'gallery' | 'profile' | 'orders' | 'addresses' | 'settings'

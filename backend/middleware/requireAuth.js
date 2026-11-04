@@ -50,64 +50,28 @@ async function requireAuth(req, res, next) {
     }
 
     try {
-        let user;
-
-        try {
-            user = await prisma.user.findUnique({
-                where: { id: userId },
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    email: true,
-                    role: true,
-                    createdAt: true,
-                    displayName: true,
-                    bio: true,
-                    avatarUrl: true,
-                    bannerUrl: true,
-                    medium: true,
-                    location: true,
-                    instagramUrl: true,
-                    websiteUrl: true,
-                    emailNotifications: true,
-                    publicProfileVisible: true,
-                    phone: true,
-                },
-            });
-        } catch (error) {
-            // Support databases where newer profile columns are not yet available.
-            if (error.code !== 'P2022') {
-                throw error;
-            }
-
-            const coreUser = await prisma.user.findUnique({
-                where: { id: userId },
-                select: {
-                    id: true,
-                    firstName: true,
-                    lastName: true,
-                    email: true,
-                    role: true,
-                    createdAt: true,
-                },
-            });
-
-            user = coreUser && {
-                ...coreUser,
-                displayName: null,
-                bio: null,
-                avatarUrl: null,
-                bannerUrl: null,
-                medium: null,
-                location: null,
-                instagramUrl: null,
-                websiteUrl: null,
-                emailNotifications: false,
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                role: true,
+                createdAt: true,
+                displayName: true,
+                bio: true,
+                avatarUrl: true,
+                bannerUrl: true,
+                medium: true,
+                location: true,
+                instagramUrl: true,
+                websiteUrl: true,
+                emailNotifications: true,
                 publicProfileVisible: true,
-                phone: null,
-            };
-        }
+                phone: true,
+            },
+        });
 
         if (!user) {
             return res.status(401).json({

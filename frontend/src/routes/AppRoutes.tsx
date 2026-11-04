@@ -6,6 +6,7 @@ import { SiteFooter, SiteNavbar } from '../features/gallery/SiteChrome'
 import { LoginPage, RegisterPage, ForgotPasswordPage } from '../features/auth/AuthPages'
 import { CartPage } from '../pages/Cart/CartPage'
 import { LiveArtistDirectoryPage, ArtworkDetailPage, CategoryPage, CollectionPage, NotFoundPage } from '../features/gallery/GalleryPages'
+import { GalleryPage } from '../features/gallery/GalleryPage'
 import { HomePage } from '../pages/Home/HomePage'
 import { ArtistDashboard } from '../pages/Artist/ArtistDashboard'
 import { BuyerDashboard } from '../pages/Buyer/BuyerDashboard'
@@ -36,6 +37,7 @@ export function AppRoutes() {
       <Route path="/help" element={<HelpPage/>}/>
       <Route path="/blog" element={<BlogIndexPage/>}/>
       <Route path="/blog/:slug" element={<BlogArticlePage/>}/>
+      <Route path="/gallery" element={<GalleryPage/>}/>
       <Route path="/artwork/:id" element={<ArtworkDetailPage/>}/>
       <Route path="/artists" element={<LiveArtistDirectoryPage/>}/>
       <Route path="/artists/:slug" element={<PublicArtistPage/>}/>

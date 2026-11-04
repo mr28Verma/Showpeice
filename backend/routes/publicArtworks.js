@@ -6,12 +6,97 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const prisma = require('../prisma');
 const { createArtworkPreview } = require('../utils/artworkPreview');
+const { artistRoles, getArtistSlugMap } = require('../utils/artistSlugs');
+const { publicArtworkImageUrl } = require('../utils/cloudinaryArtwork');
 
 const router = express.Router();
 const uploadDirectory = path.join(__dirname, '..', 'uploads', 'artworks');
 const maxSourceBytes = 10 * 1024 * 1024;
 const previewCache = new Map();
 const artworkFilenamePattern = /^([0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12})\.(png|jpg)$/i;
+const publicArtworkSelect = {
+    id: true,
+    title: true,
+    description: true,
+    price: true,
+    category: true,
+    imageUrl: true,
+    isProtected: true,
+    available: true,
+    createdAt: true,
+    updatedAt: true,
+};
+
+router.get('/', async (req, res) => {
+    try {
+        const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+        if (search.length > 100) {
+            return res.status(400).json({ error: 'Search must be 100 characters or fewer.' });
+        }
+
+        const where = {
+            status: 'published',
+            artist: {
+                is: {
+                    role: { in: artistRoles },
+                    publicProfileVisible: true,
+                },
+            },
+        };
+        if (search) {
+            where.AND = [{
+                OR: [
+                    { title: { contains: search, mode: 'insensitive' } },
+                    { category: { contains: search, mode: 'insensitive' } },
+                    {
+                        artist: {
+                            is: {
+                                OR: [
+                                    { firstName: { contains: search, mode: 'insensitive' } },
+                                    { lastName: { contains: search, mode: 'insensitive' } },
+                                    { displayName: { contains: search, mode: 'insensitive' } },
+                                ],
+                            },
+                        },
+                    },
+                ],
+            }];
+        }
+
+        const [artworks, slugById] = await Promise.all([
+            prisma.artwork.findMany({
+                where,
+                orderBy: [{ updatedAt: 'desc' }, { id: 'desc' }],
+                select: {
+                    ...publicArtworkSelect,
+                    artist: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            displayName: true,
+                        },
+                    },
+                },
+            }),
+            getArtistSlugMap(prisma),
+        ]);
+
+        return res.json({
+            artworks: artworks.map((artwork) => ({
+                ...artwork,
+                imageUrl: publicArtworkImageUrl(artwork),
+                artist: {
+                    ...artwork.artist,
+                    slug: slugById.get(artwork.artist.id),
+                },
+            })),
+        });
+    } catch (error) {
+        console.error('[artworks/list] Public artwork list failed:', error.code || error.name || 'unknown error');
+        return res.status(500).json({ error: 'Artwork could not be loaded. Please try again.' });
+    }
+});
 
 function hasPrivatePreviewAccess(artwork, token) {
     if (!token || !process.env.JWT_SECRET) return false;

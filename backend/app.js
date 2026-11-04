@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const prisma = require('./prisma');
 
 const authRoutes = require('./routes/auth');
 const buyerRoutes = require('./routes/buyer');
+const cartRoutes = require('./routes/cart');
+const favoriteRoutes = require('./routes/favorites');
 const artistRoutes = require('./routes/artist');
 const publicArtistRoutes = require('./routes/publicArtists');
 const publicArtworkRoutes = require('./routes/publicArtworks');
@@ -56,9 +59,21 @@ app.use(
 
 app.use('/api/auth', authRoutes);
 app.use('/api/buyer', buyerRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/favorites', favoriteRoutes);
 app.use('/api/artworks', publicArtworkRoutes);
 app.use('/api/artist', artistRoutes);
 app.use('/api/artists', publicArtistRoutes);
+
+app.get('/api/health', async (_req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        return res.json({ status: 'ok', database: 'connected' });
+    } catch (error) {
+        console.error('[health] Database check failed:', error.code || error.name || 'unknown error');
+        return res.status(503).json({ status: 'degraded', database: 'unavailable' });
+    }
+});
 
 app.get('/', (_req, res) => {
     res.send('Showpeice API is running');

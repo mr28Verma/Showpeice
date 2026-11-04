@@ -35,6 +35,9 @@
 .cart-modal button:focus-visible,.cart-quantity-stepper-value:focus-visible{outline:2px solid #737373;outline-offset:3px}
 .cart-remove{display:inline-flex;align-items:center;gap:5px;padding:5px 0;border:0;background:transparent;color:#737373;font-size:10px;cursor:pointer}
 .cart-remove:hover{color:#252525}
+.cart-remove:disabled{opacity:.55;cursor:default}
+.cart-control-spinner{animation:cart-control-spin .8s linear infinite}
+@keyframes cart-control-spin{to{transform:rotate(360deg)}}
 .cart-modal-footer{flex:0 0 auto;padding:18px 30px 23px;border-top:1px solid #e1e1e1;background:#f0f0f0}
 .cart-subtotal{display:flex;justify-content:space-between;align-items:center;font-size:13px}
 .cart-subtotal strong{font-size:15px;font-weight:600}

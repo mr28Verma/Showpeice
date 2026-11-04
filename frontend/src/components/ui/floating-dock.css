@@ -1,0 +1,110 @@
+.floating-dock {
+  width: max-content;
+  max-width: 100%;
+  overflow: visible;
+  border: 1px solid rgb(255 255 255 / 5%);
+  border-radius: 24px;
+  background: rgb(25 25 25 / 96%);
+  box-shadow: 0 12px 36px rgb(0 0 0 / 35%);
+}
+
+.floating-dock-list {
+  display: flex;
+  width: max-content;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 16px;
+  list-style: none;
+}
+
+.floating-dock-entry { position: relative; flex: 0 0 auto; }
+.floating-dock-entry-motion { position: relative; display: grid; width: 44px; height: 44px; flex: 0 0 auto; place-items: center; }
+
+.floating-dock-item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: #292929;
+  color: #d3d3d3;
+  cursor: pointer;
+  text-decoration: none;
+  transition: width .2s ease, height .2s ease, border-color .2s ease, background-color .2s ease, color .2s ease;
+}
+
+.floating-dock-item:hover,
+.floating-dock-item:focus-visible {
+  border-color: #444;
+  background: #373737;
+  color: #fff;
+  outline: none;
+}
+
+.floating-dock-item.is-active {
+  border-color: #414141;
+  background: #363636;
+  color: #fff;
+}
+
+.floating-dock-icon { display: grid; width: 21px; height: 21px; place-items: center; }
+.floating-dock-icon > svg { width: 100%; height: 100%; stroke-width: 1.8; }
+.floating-dock-brand-mark { width: 22px; height: 22px; object-fit: contain; }
+
+.floating-dock-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  display: grid;
+  min-width: 17px;
+  height: 17px;
+  place-items: center;
+  padding: 0 4px;
+  border: 1px solid #191919;
+  border-radius: 999px;
+  background: #ededed;
+  color: #191919;
+  font: 700 9px/1 'DM Sans', sans-serif;
+}
+
+.floating-dock-tooltip {
+  position: absolute;
+  z-index: 3;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  width: max-content;
+  max-width: min(220px, calc(100vw - 32px));
+  padding: 5px 9px;
+  border: 1px solid #383838;
+  border-radius: 6px;
+  background: #242424;
+  color: #f5f5f5;
+  font: 500 11px/1.2 'DM Sans', sans-serif;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .floating-dock-list { gap: 3px; padding: 5px; }
+  .floating-dock-entry-motion { width: 30px; height: 30px; }
+  .floating-dock-item { width: 100%; height: 100%; }
+  .floating-dock-icon { width: 14px; height: 14px; }
+  .floating-dock-brand-mark { width: 15px; height: 15px; }
+  .floating-dock-tooltip { bottom: calc(100% + 8px); font-size: 10px; }
+}
+
+@media (max-width: 360px) {
+  .floating-dock-list { gap: 2px; padding: 4px; }
+  .floating-dock-entry-motion { width: 26px; height: 26px; }
+  .floating-dock-item { width: 100%; height: 100%; }
+  .floating-dock-icon { width: 14px; height: 14px; }
+  .floating-dock-brand-mark { width: 14px; height: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floating-dock-item { transition: none; }
+}

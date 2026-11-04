@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Heart, ShoppingBag } from 'lucide-react'
+import { Check, Heart, RefreshCw, ShoppingBag } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../cart/CartContext'
 import { formatINR } from '../../utils/formatCurrency'
@@ -7,13 +7,16 @@ import type { Artwork } from '../../types/artwork'
 import { useMarket } from './MarketContext'
 import { GlowingEffect } from '../../components/ui/glowing-effect'
 import { ProtectedArtworkImage } from '../../components/ProtectedArtworkImage'
+import { Skeleton } from '../../components/ui/Skeleton'
+import { toast } from '../../components/ui/toast'
 
 const photo = (id: string, width = 850) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`
 
 export function ArtworkCard({ item, index }: { item: Artwork; index: number }) {
-  const { favorites, toggleFavorite } = useMarket()
-  const { addItem } = useCart()
+  const { favorites, favoritesLoading, favoritesError, retryFavorites, toggleFavorite } = useMarket()
+  const { addItem, items: cartItems } = useCart()
   const isFavorite = favorites.includes(item.id)
+  const isInBag = cartItems.some((cartItem) => cartItem.id === item.id)
   const [isVisible, setIsVisible] = useState(() => typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window))
   const cardRef = useRef<HTMLElement>(null)
 
@@ -64,11 +67,12 @@ export function ArtworkCard({ item, index }: { item: Artwork; index: number }) {
         <button
           className={isFavorite ? 'favorite is-favorite' : 'favorite'}
           type="button"
-          onClick={() => toggleFavorite(item.id)}
-          aria-label={`${isFavorite ? 'Remove' : 'Add'} ${item.title} ${isFavorite ? 'from' : 'to'} favourites`}
-          aria-pressed={isFavorite}
+          onClick={() => favoritesError ? retryFavorites() : toggleFavorite(item.id)}
+          aria-label={favoritesError ? 'Retry loading saved artworks' : `${isFavorite ? 'Remove' : 'Add'} ${item.title} ${isFavorite ? 'from' : 'to'} favourites`}
+          aria-pressed={favoritesError ? undefined : isFavorite}
+          aria-busy={favoritesLoading}
         >
-          <Heart size={18} fill={isFavorite ? 'currentColor' : 'none'} />
+          {favoritesLoading ? <Skeleton shape="circle" className="favorite-action-skeleton" /> : favoritesError ? <RefreshCw size={16} aria-hidden="true" /> : <Heart size={18} fill={isFavorite ? 'currentColor' : 'none'} />}
         </button>
         <span className="art-category">{item.category}</span>
       </div>
@@ -80,11 +84,20 @@ export function ArtworkCard({ item, index }: { item: Artwork; index: number }) {
         <strong>{formatINR(item.price)}</strong>
       </div>
       <button
-        className="art-add-to-bag"
+        className={`art-add-to-bag${isInBag ? ' is-in-bag' : ''}`}
         type="button"
-        onClick={() => addItem({ id: item.id, title: item.title, artist: item.artist, price: formatINR(item.price), image: photo(item.image, 500), isProtected: item.isProtected })}
+        aria-label={isInBag ? `${item.title} is in your bag` : `Add ${item.title} to bag`}
+        aria-pressed={isInBag}
+        onClick={async () => {
+          try {
+            await addItem({ id: item.id, title: item.title, artist: item.artist, price: formatINR(item.price), image: photo(item.image, 500), isProtected: item.isProtected })
+            toast.success('Artwork added to your bag', item.title)
+          } catch (error) {
+            toast.error('Artwork could not be added', error instanceof Error ? error.message : 'Please try again.')
+          }
+        }}
       >
-        Add to bag <ShoppingBag size={14} />
+        {isInBag ? <>In your bag <Check size={14} aria-hidden="true" /></> : <>Add to bag <ShoppingBag size={14} aria-hidden="true" /></>}
       </button>
     </article>
   )

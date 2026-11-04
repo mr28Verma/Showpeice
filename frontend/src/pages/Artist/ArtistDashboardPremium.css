@@ -28,7 +28,7 @@
   border-bottom-color: var(--studio-line); background: rgba(16, 16, 16, 94%);
   backdrop-filter: blur(10px);
 }
-.studio-search { max-width: 310px; height: 40px; gap: 10px; border-color: var(--studio-line); border-radius: 6px; color: var(--studio-muted); }
+.studio-search { max-width: 310px; height: 40px; gap: 10px; border-color: var(--studio-line); border-radius: 999px; color: var(--studio-muted); }
 .artist-dashboard .studio-search { background: var(--page-bg); }
 .studio-search:focus-within { border-color: var(--studio-muted); box-shadow: none; }
 .studio-search input { color: var(--studio-text); }
@@ -112,21 +112,19 @@
 .studio-profile-person { display: flex; align-items: center; gap: 15px; margin: 24px 0; }
 .studio-profile-person h2 { margin: 0 0 6px; font: 500 24px 'Playfair Display', serif; }
 .studio-profile-person p { margin: 0; color: var(--studio-muted); }
-.studio-sidebar-content { display: flex; min-height: 100%; flex-direction: column; gap: 16px; }
-.studio-wordmark { display: flex; min-height: 48px; align-items: center; gap: 11px; overflow: hidden; color: var(--studio-text); text-decoration: none; }
-.studio-wordmark img { width: 31px; height: 31px; flex: 0 0 31px; object-fit: contain; }
-.studio-wordmark > span { display: grid; overflow: hidden; color: #eaeaea; font: 500 19px/1 'Playfair Display', serif; letter-spacing: .3px; white-space: nowrap; }
-.studio-wordmark small { margin-top: 5px; color: var(--studio-muted); font: 500 8px/1 'DM Sans', sans-serif; letter-spacing: 1.7px; }
-.studio-side-nav { display: grid; gap: 4px; margin-top: 13px; }
-.studio-sidebar-bottom { display: grid; gap: 12px; margin-top: auto; }
-.studio-account { display: flex; min-width: 0; align-items: center; gap: 9px; padding: 12px 0 0; border-top-color: var(--studio-line); }
-.studio-avatar { display: grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; overflow: hidden; border: 1px solid #454545; border-radius: 50%; background: #252525; color: #e0e0e0; font: 500 15px 'Playfair Display', serif; }
-.studio-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.studio-account-name { display: grid; min-width: 0; flex: 1; gap: 4px; overflow: hidden; }
-.studio-account-name strong { overflow: hidden; color: #e4e4e4; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.studio-account-name small { overflow: hidden; color: var(--studio-muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
-.aceternity-sidebar-desktop:not(.is-open) .studio-account { flex-direction: column; gap: 7px; }
-.aceternity-sidebar-desktop:not(.is-open) .studio-account-name { display: none; }
+.artist-dashboard-dock {
+  position: fixed;
+  z-index: 20;
+  right: 12px;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: 12px;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+.artist-dashboard-dock > * { max-width: 100%; pointer-events: auto; }
+.artist-dashboard-dock-profile-avatar { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.artist-dashboard .studio-content { padding-bottom: 120px; }
 .studio-alert { align-items: center; gap: 12px; border-color: #555555; background: #1b1b1b; color: #c4c4c4; }
 .studio-alert button { padding: 5px 7px; color: #c4c4c4; font: 11px 'DM Sans', sans-serif; cursor: pointer; }
 .studio-alert button:last-child { margin-left: auto; font-size: 18px; }
@@ -151,11 +149,14 @@
   .studio-art-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 850px) {
+  .artist-dashboard .studio-content { padding-bottom: 110px; }
   .studio-topbar { height: 70px; justify-content: flex-end; padding-left: 64px; }
   .studio-content { padding: 27px 24px 50px; }
   .studio-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
+  .artist-dashboard-dock { right: 8px; bottom: max(12px, env(safe-area-inset-bottom)); left: 8px; }
+  .artist-dashboard .studio-content { padding-bottom: 96px; }
   .studio-topbar { gap: 8px; padding-right: 13px; }
   .studio-search { max-width: none; height: 38px; gap: 6px; padding: 0 9px; }
   .studio-search input { min-width: 0; font-size: 11px; }
@@ -190,4 +191,8 @@
 @media (prefers-reduced-motion: reduce) {
   .studio-loading-mark { animation: none; }
   .studio-add-top, .studio-submit { transition: none; }
+}
+
+.artist-dashboard button {
+  border-radius: 999px;
 }

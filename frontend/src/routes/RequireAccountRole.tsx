@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { apiUrl } from '../lib/api'
+import { clearAuthSession, resolveAuthSession } from '../lib/authSession'
 
 type AccountRole = 'buyer' | 'seller' | 'artist'
 type Account = { id: number; role: string }
@@ -21,53 +21,55 @@ export function RequireAccountRole({ role, children }: { role: AccountRole; chil
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
+    const syncAuthSession = () => {
+      setToken(localStorage.getItem('showpeice_token'))
+      setAccess('checking')
+    }
+
+    window.addEventListener('showpeice:auth-changed', syncAuthSession)
+    window.addEventListener('storage', syncAuthSession)
+    return () => {
+      window.removeEventListener('showpeice:auth-changed', syncAuthSession)
+      window.removeEventListener('storage', syncAuthSession)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!token) return
+    let active = true
 
-    const controller = new AbortController()
-    const timeoutId = window.setTimeout(() => controller.abort(), 15000)
-    let current = true
-
-    fetch(apiUrl('/auth/me'), {
-      headers: { Authorization: `Bearer ${token}` },
-      signal: controller.signal,
-    }).then(async (response) => {
-      const result = await response.json().catch(() => ({})) as { user?: Account }
-      if (!current) return
-
-      if (response.status === 401) {
-        localStorage.removeItem('showpeice_token')
-        localStorage.removeItem('showpeice_user')
+    void resolveAuthSession().then((result) => {
+      if (!active) return
+      if (result.status === 'anonymous') {
         setToken(null)
         return
       }
-
-      if (response.status === 403) {
+      if (result.status === 'forbidden') {
         setAccess('invalid-role')
         return
       }
-
-      if (!response.ok || !result.user || !Number.isSafeInteger(result.user.id)) {
+      if (result.status === 'unavailable') {
         setAccess('unavailable')
         return
       }
 
-      if (!isAccountRole(result.user.role)) {
+      const account: Account = result.user
+      if (!isAccountRole(account.role)) {
         setAccess('invalid-role')
         return
       }
 
-      localStorage.setItem('showpeice_user', JSON.stringify(result.user))
-      const hasRequestedRole = result.user.role === role || (role === 'artist' && result.user.role === 'seller')
+      const hasRequestedRole = account.role === role || (role === 'artist' && account.role === 'seller')
       if (hasRequestedRole) setAccess('allowed')
-      else navigate(dashboardForRole(result.user.role), { replace: true })
-    }).catch(() => {
-      if (current) setAccess('unavailable')
-    }).finally(() => window.clearTimeout(timeoutId))
+      else navigate(dashboardForRole(account.role), { replace: true })
+    }).catch((error: unknown) => {
+      if (!active) return
+      console.error('[auth] Account verification failed:', error)
+      setAccess('unavailable')
+    })
 
     return () => {
-      current = false
-      window.clearTimeout(timeoutId)
-      controller.abort()
+      active = false
     }
   }, [attempt, navigate, role, token])
 
@@ -81,8 +83,7 @@ export function RequireAccountRole({ role, children }: { role: AccountRole; chil
 
   if (access === 'invalid-role') {
     const signOut = () => {
-      localStorage.removeItem('showpeice_token')
-      localStorage.removeItem('showpeice_user')
+      clearAuthSession()
       setToken(null)
     }
     return <main className="dashboard-access-state" role="alert">

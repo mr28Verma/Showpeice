@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { ArrowUpRight, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
+import { ArrowRight, ArrowUpRight, Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react'
 import { FaFacebookF, FaInstagram, FaLinkedin, FaPinterestP, FaXTwitter } from 'react-icons/fa6'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { artwork } from '../../data/artworks'
 import { CartModal } from '../cart/CartModal'
 import { useCart } from '../cart/CartContext'
-import { useMarket } from './MarketContext'
 import { ProtectedArtworkImage } from '../../components/ProtectedArtworkImage'
+import { Skeleton } from '../../components/ui/Skeleton'
+import { getDashboardDestination, getLogoDestination } from '../../lib/logoDestination'
+import { apiAssetUrl, apiUrl } from '../../lib/api'
+import { formatINR } from '../../utils/formatCurrency'
 
 function NavMotionItem({ selected, reducedMotion, onSelect, children, underline = true }: { selected: boolean; reducedMotion: boolean; onSelect: () => void; children: ReactNode; underline?: boolean }) {
   const [hovered, setHovered] = useState(false)
@@ -17,11 +19,25 @@ function NavMotionItem({ selected, reducedMotion, onSelect, children, underline 
   </motion.div>
 }
 
+type ArtworkSearchResult = {
+  id: number
+  title: string
+  price: number
+  category: string
+  imageUrl: string | null
+  isProtected: boolean
+  artist: {
+    slug: string
+    firstName: string
+    lastName: string
+    displayName: string | null
+  }
+}
+
 export function SiteNavbar() {
   const navigate = useNavigate()
   const location = useLocation()
   const cart = useCart()
-  const { query, setQuery } = useMarket()
   const prefersReducedMotion = useReducedMotion()
   const reducedMotion = prefersReducedMotion ?? false
   const [searchOpen, setSearchOpen] = useState(false)
@@ -29,23 +45,23 @@ export function SiteNavbar() {
   const [scrolled, setScrolled] = useState(false)
   const [activeNav, setActiveNav] = useState('')
   const [cartOpen, setCartOpen] = useState(false)
+  const [authState, setAuthState] = useState(() => ({
+    isAuthenticated: Boolean(localStorage.getItem('showpeice_token')),
+  }))
+  const [query, setQuery] = useState('')
+  const [searchState, setSearchState] = useState<{
+    query: string
+    loading: boolean
+    results: ArtworkSearchResult[]
+    error: string
+  }>({ query: '', loading: false, results: [], error: '' })
+  const [searchAttempt, setSearchAttempt] = useState(0)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const bagButtonRef = useRef<HTMLButtonElement>(null)
 
-  const token = localStorage.getItem('showpeice_token')
-  const userRole = (() => {
-    try {
-      const u = localStorage.getItem('showpeice_user')
-      return u ? JSON.parse(u).role : null
-    } catch {
-      return null
-    }
-  })()
-  const dashboardPath = userRole === 'seller' || userRole === 'artist'
-    ? '/artist/dashboard'
-    : userRole === 'buyer'
-      ? '/buyer/dashboard'
-      : '/login'
+  const logoPath = getLogoDestination()
+  const dashboardPath = getDashboardDestination()
+  const { isAuthenticated } = authState
 
   useEffect(() => {
     const handleScroll = () => setScrolled(!reducedMotion && window.scrollY > 24)
@@ -55,6 +71,18 @@ export function SiteNavbar() {
   }, [reducedMotion])
 
   useEffect(() => {
+    const syncAuthState = () => setAuthState({
+      isAuthenticated: Boolean(localStorage.getItem('showpeice_token')),
+    })
+    window.addEventListener('showpeice:auth-changed', syncAuthState)
+    window.addEventListener('storage', syncAuthState)
+    return () => {
+      window.removeEventListener('showpeice:auth-changed', syncAuthState)
+      window.removeEventListener('storage', syncAuthState)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!searchOpen) return
     searchInputRef.current?.focus()
     const handleKeyDown = (event: KeyboardEvent) => { if (event.key === 'Escape') setSearchOpen(false) }
@@ -62,28 +90,76 @@ export function SiteNavbar() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [searchOpen])
 
+  useEffect(() => {
+    const search = query.trim()
+    if (!searchOpen || search.length < 2) return
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      setSearchState({ query: search, loading: true, results: [], error: '' })
+      const params = new URLSearchParams({ search })
+      fetch(apiUrl(`/artworks?${params.toString()}`), { signal: controller.signal })
+        .then(async (response) => {
+          const result = await response.json().catch(() => ({})) as {
+            artworks?: ArtworkSearchResult[]
+            error?: string
+          }
+          if (!response.ok || !Array.isArray(result.artworks)) {
+            throw new Error(result.error || 'Artwork search is unavailable. Please try again.')
+          }
+          setSearchState({ query: search, loading: false, results: result.artworks.slice(0, 4), error: '' })
+        })
+        .catch((cause: unknown) => {
+          if (controller.signal.aborted) return
+          setSearchState({
+            query: search,
+            loading: false,
+            results: [],
+            error: cause instanceof Error ? cause.message : 'Artwork search is unavailable. Please try again.',
+          })
+        })
+    }, 250)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [query, searchOpen, searchAttempt])
+
   const scrollTo = useCallback((id: string) => {
     if (location.pathname !== '/' || location.hash !== `#${id}`) navigate(`/#${id}`)
     window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }), location.pathname === '/' ? 0 : 80)
   }, [location.hash, location.pathname, navigate, reducedMotion])
-  const closeCart = useCallback(() => setCartOpen(false), [])
   const selectNavigationItem = (label: string, sectionId: string) => {
     setActiveNav(label)
     setMobileMenuOpen(false)
     scrollTo(sectionId)
   }
+  const closeCart = useCallback(() => setCartOpen(false), [])
   const discoverFromCart = useCallback(() => {
     setCartOpen(false)
     if (location.pathname !== '/') navigate('/#artwork')
     window.setTimeout(() => document.getElementById('artwork')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }), 80)
   }, [location.pathname, navigate, reducedMotion])
-  const searchResults = query.trim().length >= 2 ? artwork.filter((item) => `${item.title} ${item.artist} ${item.category} ${item.medium}`.toLowerCase().includes(query.toLowerCase())).slice(0, 4) : []
-  const submitSearch = () => { setSearchOpen(false); navigate(`/#artwork`); window.setTimeout(() => document.getElementById('artwork')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth' }), 80) }
-
+  const submitSearch = () => {
+    const search = query.trim()
+    setSearchOpen(false)
+    navigate(search ? `/gallery?search=${encodeURIComponent(search)}` : '/gallery')
+  }
+  const searchImageUrl = (imageUrl: string | null) => !imageUrl
+    ? ''
+    : /^https?:\/\//i.test(imageUrl) ? imageUrl : apiAssetUrl(imageUrl)
+  const searchArtistName = (artist: ArtworkSearchResult['artist']) =>
+    artist.displayName?.trim() || `${artist.firstName} ${artist.lastName}`.trim()
+  const normalizedSearch = query.trim()
+  const searchResults = searchState.query === normalizedSearch ? searchState.results : []
+  const searchLoading = searchOpen && normalizedSearch.length >= 2 &&
+    (searchState.query !== normalizedSearch || searchState.loading)
+  const searchError = searchState.query === normalizedSearch ? searchState.error : ''
   return <>
     <motion.header className={`site-header${scrolled ? ' is-scrolled' : ''}`} initial={reducedMotion ? false : { opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.42, ease: 'easeOut' }}>
-        <motion.div className="nav-pill">
-        <motion.div className="wordmark" initial={reducedMotion ? false : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.45, delay: reducedMotion ? 0 : 0.12 }} whileHover={reducedMotion ? undefined : { y: -1 }}><Link className="wordmark-anchor" to="/" aria-label="Showpeice home"><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong className="brand-name">Showpeice</strong></Link></motion.div>
+      <motion.div className="nav-pill">
+        <motion.div className="wordmark" initial={reducedMotion ? false : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reducedMotion ? 0 : 0.45, delay: reducedMotion ? 0 : 0.12 }} whileHover={reducedMotion ? undefined : { y: -1 }}><Link className="wordmark-anchor" to={logoPath} aria-label="Showpeice home"><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong className="brand-name">Showpeice</strong></Link></motion.div>
         <motion.nav className="main-nav" aria-label="Main navigation" initial={reducedMotion ? false : 'hidden'} animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: reducedMotion ? 0 : 0.055, delayChildren: reducedMotion ? 0 : 0.12 } } }}>
           <NavMotionItem selected={activeNav === 'Home'} reducedMotion={reducedMotion} onSelect={() => selectNavigationItem('Home', 'home')}><Link to="/#home">Home</Link></NavMotionItem>
           <NavMotionItem selected={activeNav === 'Artworks'} reducedMotion={reducedMotion} onSelect={() => selectNavigationItem('Artworks', 'artwork')}><Link to="/#artwork">Artworks</Link></NavMotionItem>
@@ -93,11 +169,37 @@ export function SiteNavbar() {
         <motion.div className="header-actions" initial={reducedMotion ? false : 'hidden'} animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: reducedMotion ? 0 : 0.075, delayChildren: reducedMotion ? 0 : 0.18 } } }}>
           <motion.div className="selling-cta-wrap" variants={{ hidden: { opacity: 0, y: reducedMotion ? 0 : 5 }, show: { opacity: 1, y: 0 } }} transition={{ duration: reducedMotion ? 0 : 0.3 }} whileHover={reducedMotion ? undefined : { scale: 1.035 }} whileTap={reducedMotion ? undefined : { scale: 0.98 }}><Link className="selling-cta" to="/login?role=artist">Start selling</Link></motion.div>
           <button className="icon-button mobile-menu-toggle" type="button" aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={mobileMenuOpen} aria-controls="mobile-primary-navigation" onClick={() => setMobileMenuOpen((open) => !open)}>{mobileMenuOpen ? <X size={20}/> : <Menu size={20}/>}</button>
-          <motion.button className="icon-button search-toggle" aria-label={searchOpen ? 'Close search' : 'Search artwork'} aria-expanded={searchOpen} onClick={() => setSearchOpen((open) => !open)} whileHover={reducedMotion ? undefined : { y: -2, backgroundColor: '#ececec' }} whileTap={reducedMotion ? undefined : { scale: 0.96 }} variants={{ hidden: { opacity: 0, scale: reducedMotion ? 1 : 0.9 }, show: { opacity: 1, scale: 1 } }} transition={{ duration: reducedMotion ? 0 : 0.22 }}><AnimatePresence mode="wait" initial={false}><motion.span className="icon-swap" key={searchOpen ? 'close' : 'search'} initial={reducedMotion ? false : { opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} exit={reducedMotion ? undefined : { opacity: 0, scale: 0.88 }} transition={{ duration: reducedMotion ? 0 : 0.14 }}>{searchOpen ? <X size={20}/> : <Search size={20}/>}</motion.span></AnimatePresence></motion.button>
-          <motion.button className="icon-button account-toggle" aria-label="Account" title="Account" onClick={() => navigate(token ? dashboardPath : '/login')} whileHover={reducedMotion ? undefined : { y: -2, backgroundColor: '#ececec' }} whileTap={reducedMotion ? undefined : { scale: 0.96 }} variants={{ hidden: { opacity: 0, scale: reducedMotion ? 1 : 0.9 }, show: { opacity: 1, scale: 1 } }} transition={{ duration: reducedMotion ? 0 : 0.22 }}><UserRound size={20}/></motion.button>
-          <motion.button ref={bagButtonRef} className="icon-button bag-toggle" aria-label={cart.itemCount ? `Shopping bag, ${cart.itemCount} ${cart.itemCount === 1 ? 'item' : 'items'}` : 'Shopping bag'} aria-expanded={cartOpen} aria-controls="cart-modal-title" title="Shopping bag" onClick={() => setCartOpen(true)} whileHover={reducedMotion ? undefined : { y: -2, backgroundColor: '#ececec' }} whileTap={reducedMotion ? undefined : { scale: 0.96 }} variants={{ hidden: { opacity: 0, scale: reducedMotion ? 1 : 0.9 }, show: { opacity: 1, scale: 1 } }} transition={{ duration: reducedMotion ? 0 : 0.22 }}><ShoppingBag size={20}/>{cart.itemCount > 0 && <span className="bag-count" aria-hidden="true">{cart.itemCount > 99 ? '99+' : cart.itemCount}</span>}</motion.button>
-          <Link className="sign-in-toggle" to={token ? dashboardPath : '/login'}>{token ? 'Dashboard' : 'Sign in'}</Link>
-          <AnimatePresence initial={false}>{searchOpen && <motion.div className="search-panel" initial={reducedMotion ? false : { opacity: 0, height: 0, y: -7 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, height: 0, y: -5 }} transition={{ duration: reducedMotion ? 0 : 0.22, ease: 'easeOut' }}><form className="search-panel-inner" role="search" onSubmit={(event) => { event.preventDefault(); submitSearch() }}><input ref={searchInputRef} className="header-search" aria-label="Search artwork" placeholder="Search artwork…" value={query} onChange={(event) => setQuery(event.target.value)}/><button className="search-close" type="button" aria-label="Close search" onClick={() => setSearchOpen(false)}><X size={18}/></button></form>{query.trim().length >= 2 && <div className="search-results">{searchResults.length ? searchResults.map((item) => <Link key={item.id} to={`/artwork/${item.id}`} onClick={() => setSearchOpen(false)}><ProtectedArtworkImage isProtected={item.isProtected} src={`https://images.unsplash.com/${item.image}?auto=format&fit=crop&w=100&q=80`} alt=""/><span><strong>{item.title}</strong><small>{item.artist} · {item.category}</small></span><ArrowUpRight size={15}/></Link>) : <p>No artworks found. Try a different search.</p>}</div>}</motion.div>}</AnimatePresence>
+          <motion.button className="icon-button search-toggle" type="button" aria-label={searchOpen ? 'Close search' : 'Search artwork'} aria-expanded={searchOpen} onClick={() => setSearchOpen((open) => !open)} whileHover={reducedMotion ? undefined : { y: -2, backgroundColor: '#ececec' }} whileTap={reducedMotion ? undefined : { scale: 0.96 }} variants={{ hidden: { opacity: 0, scale: reducedMotion ? 1 : 0.9 }, show: { opacity: 1, scale: 1 } }} transition={{ duration: reducedMotion ? 0 : 0.22 }}><AnimatePresence mode="wait" initial={false}><motion.span className="icon-swap" key={searchOpen ? 'close' : 'search'} initial={reducedMotion ? false : { opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} exit={reducedMotion ? undefined : { opacity: 0, scale: 0.88 }} transition={{ duration: reducedMotion ? 0 : 0.14 }}>{searchOpen ? <X size={20}/> : <Search size={20}/>}</motion.span></AnimatePresence></motion.button>
+          <motion.button className="icon-button account-toggle" type="button" aria-label="Account" title="Account" onClick={() => navigate(isAuthenticated ? dashboardPath : '/login')} whileHover={reducedMotion ? undefined : { y: -2, backgroundColor: '#ececec' }} whileTap={reducedMotion ? undefined : { scale: 0.96 }} variants={{ hidden: { opacity: 0, scale: reducedMotion ? 1 : 0.9 }, show: { opacity: 1, scale: 1 } }} transition={{ duration: reducedMotion ? 0 : 0.22 }}><UserRound size={20}/></motion.button>
+          <motion.button ref={bagButtonRef} className="icon-button bag-toggle" type="button" aria-label={cart.itemCount ? `Shopping bag, ${cart.itemCount} ${cart.itemCount === 1 ? 'item' : 'items'}` : 'Shopping bag'} aria-expanded={cartOpen} aria-controls="cart-modal-title" title="Shopping bag" onClick={() => setCartOpen(true)} whileHover={reducedMotion ? undefined : { y: -2, backgroundColor: '#ececec' }} whileTap={reducedMotion ? undefined : { scale: 0.96 }} variants={{ hidden: { opacity: 0, scale: reducedMotion ? 1 : 0.9 }, show: { opacity: 1, scale: 1 } }} transition={{ duration: reducedMotion ? 0 : 0.22 }}><ShoppingBag size={20}/>{cart.itemCount > 0 && <span className="bag-count" aria-hidden="true">{cart.itemCount > 99 ? '99+' : cart.itemCount}</span>}</motion.button>
+          <Link className="sign-in-toggle" to={isAuthenticated ? dashboardPath : '/login'}>{isAuthenticated ? 'Dashboard' : 'Sign in'}</Link>
+          <AnimatePresence initial={false}>{searchOpen && <motion.div className="search-panel" initial={reducedMotion ? false : { opacity: 0, height: 0, y: -7 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, height: 0, y: -5 }} transition={{ duration: reducedMotion ? 0 : 0.22, ease: 'easeOut' }}>
+            <form className="search-panel-inner" role="search" onSubmit={(event) => { event.preventDefault(); submitSearch() }}>
+              <input ref={searchInputRef} className="header-search" aria-label="Search artwork" placeholder="Search by artwork, artist, or category…" value={query} onChange={(event) => setQuery(event.target.value)}/>
+              {query && <button className="search-clear" type="button" aria-label="Clear search" onClick={() => setQuery('')}><X size={16}/></button>}
+              <button className="search-close" type="button" aria-label="Close search" onClick={() => setSearchOpen(false)}><X size={18}/></button>
+            </form>
+              {query.trim().length < 2 ? <p className="search-panel-hint">Type at least 2 characters to search.</p> : searchLoading ? <div className="search-results search-results-skeleton" role="status" aria-label="Loading artwork search results" aria-busy="true">
+                {Array.from({ length: 3 }, (_, index) => <div className="search-result-skeleton" key={index} aria-hidden="true"><Skeleton className="search-result-image"/><span className="search-result-skeleton-copy"><Skeleton shape="text" className="search-result-skeleton-title"/><Skeleton shape="text" className="search-result-skeleton-artist"/></span><Skeleton shape="circle" className="search-result-arrow"/></div>)}
+                <div className="search-view-all-skeleton" aria-hidden="true"><Skeleton shape="text"/></div>
+              </div> : searchError ? <div className="search-panel-error" role="alert">
+                <p className="search-panel-status">{searchError}</p>
+                <button className="search-panel-retry" type="button" onClick={() => {
+                  setSearchState({ query: normalizedSearch, loading: true, results: [], error: '' })
+                  setSearchAttempt(value => value + 1)
+                }}>Try again</button>
+              </div> : searchResults.length ? <div className="search-results">
+              {searchResults.map((item) => {
+                const name = searchArtistName(item.artist)
+                const imageUrl = searchImageUrl(item.imageUrl)
+                return <Link key={item.id} to={`/artwork/${item.id}?artist=${encodeURIComponent(item.artist.slug)}`} onClick={() => setSearchOpen(false)}>
+                  {imageUrl ? <ProtectedArtworkImage isProtected={item.isProtected} src={imageUrl} alt="" loading="lazy"/> : <span className="search-result-placeholder" aria-hidden="true"/>}
+                  <span><strong>{item.title}</strong><small>{name} · {item.category} · {formatINR(item.price)}</small></span><ArrowUpRight size={15}/>
+                </Link>
+              })}
+              <Link className="search-view-all" to={`/gallery?search=${encodeURIComponent(query.trim())}`} onClick={() => setSearchOpen(false)}>View all results <ArrowRight size={15}/></Link>
+            </div> : <p className="search-panel-status" role="status">No artworks found. Try another title, artist, or category.</p>}
+          </motion.div>}</AnimatePresence>
         </motion.div>
       </motion.div>
       <AnimatePresence>{mobileMenuOpen && <motion.nav id="mobile-primary-navigation" className="mobile-nav" aria-label="Mobile navigation" initial={reducedMotion ? false : { opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={reducedMotion ? undefined : { opacity: 0, y: -8 }} transition={{ duration: reducedMotion ? 0 : 0.18 }}>
@@ -112,11 +214,13 @@ export function SiteNavbar() {
 }
 
 export function SiteFooter() {
+  const logoPath = getLogoDestination()
+
   return <footer className="site-footer">
     <div className="footer-card">
       <div className="footer-rule" />
       <div className="footer-main">
-        <Link className="wordmark footer-brand-name" to="/" aria-label="Showpeice home"><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong>Showpeice</strong></Link>
+        <Link className="wordmark footer-brand-name" to={logoPath} aria-label="Showpeice home"><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong>Showpeice</strong></Link>
         <nav className="footer-nav" aria-label="Footer navigation">
           <Link to="/#artwork">Products</Link>
           <Link to="/login?role=artist">Studio</Link>

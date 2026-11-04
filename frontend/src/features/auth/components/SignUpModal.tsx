@@ -4,6 +4,8 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { FloatingInput, FloatingLabel } from '@/components/ui/floating-label-input'
 import { toast } from '../../../components/ui/toast'
 import { apiUrl } from '../../../lib/api'
+import { getSafeReturnTo } from '../../../lib/authRedirect'
+import { saveAuthSession } from '../../../lib/authSession'
 import styles from './SignUpModal.module.css'
 
 type Tab = 'signup' | 'signin'
@@ -155,37 +157,21 @@ export function SignUpModal({ initialTab = 'signin' }: { initialTab?: Tab }) {
           toast.error('Sign in failed', 'This account has an unsupported role. Please contact Showpeice support.')
           return
         }
-        localStorage.setItem('showpeice_token', result.token)
-        localStorage.setItem('showpeice_user', JSON.stringify(result.user))
-        const returnTo = searchParams.get('returnTo')
-        if (returnTo?.startsWith('/') && !returnTo.startsWith('//')) {
-          const returnPath = returnTo.split(/[?#]/, 1)[0]
-          const requestedDashboard = returnPath === '/artist/dashboard'
-            ? 'artist'
-            : returnPath === '/buyer/dashboard'
-              ? 'buyer'
-              : null
-          const accountDashboard = result.user.role === 'seller' || result.user.role === 'artist'
-            ? 'artist'
-            : 'buyer'
-
-          if (requestedDashboard && requestedDashboard !== accountDashboard) {
-            toast.success('Welcome back', 'You are signed in to your account dashboard.')
-            navigate(accountDashboard === 'artist' ? '/artist/dashboard' : '/buyer/dashboard')
-            return
-          }
-
+        saveAuthSession(result.token, result.user)
+        const accountRole = result.user.role === 'seller' || result.user.role === 'artist' ? 'artist' : 'buyer'
+        const returnTo = getSafeReturnTo(searchParams.get('returnTo'), accountRole)
+        if (returnTo) {
           toast.success('Signed in', 'You are ready to continue.')
           navigate(returnTo)
           return
         }
-        if (result.user.role === 'seller' || result.user.role === 'artist') {
+        if (accountRole === 'artist') {
           toast.success('Welcome back', 'You are signed in to your artist studio.')
           navigate('/artist/dashboard')
           return
         }
         toast.success('Welcome back', 'You are signed in to your collector desk.')
-        navigate('/buyer/dashboard')
+        navigate('/gallery')
         return
       }
 

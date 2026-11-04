@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { hasSafeTestDatabase } = require('../testSupport/databaseTestGuard');
 const app = require('../app');
 const prisma = require('../prisma');
 
@@ -14,7 +15,9 @@ function signTestToken(user) {
     );
 }
 
-test('Buyer Dashboard API suite', async (t) => {
+test('Buyer Dashboard API suite', {
+    skip: hasSafeTestDatabase ? false : 'Set TEST_DATABASE_URL to a local disposable *_test database to run database integration tests.',
+}, async (t) => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'testsecret';
 
     const buyer = await prisma.user.create({
@@ -185,7 +188,7 @@ test('Buyer Dashboard API suite', async (t) => {
         }
     });
 
-    await t.test('Buyer order checkout & order isolation', async () => {
+    await t.test('checkout rejects attempts until payment verification is configured', async () => {
         const server = app.listen(0);
         const port = server.address().port;
         try {
@@ -225,53 +228,10 @@ test('Buyer Dashboard API suite', async (t) => {
                 }),
             });
 
-            assert.equal(checkoutRes.status, 201);
-            const { order } = await checkoutRes.json();
-            assert.ok(order.id);
-            assert.equal(order.buyerId, buyer.id);
-            assert.equal(order.totalAmount, artwork.price);
-            assert.ok(order.orderNumber.startsWith('SP-'));
-
-            // Fetch orders list
-            const ordersRes = await fetch(`http://localhost:${port}/api/buyer/orders`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            assert.equal(ordersRes.status, 200);
-            const ordersData = await ordersRes.json();
-            assert.ok(ordersData.orders.some((o) => o.id === order.id));
-
-            // The overview is built from unique Order records owned by this buyer,
-            // rather than from joined OrderItem rows.
-            const dashboardRes = await fetch(`http://localhost:${port}/api/buyer/dashboard`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            assert.equal(dashboardRes.status, 200);
-            const dashboardData = await dashboardRes.json();
-            const recentOrderIds = dashboardData.recentOrders.map((recentOrder) => recentOrder.id);
-            assert.equal(new Set(recentOrderIds).size, recentOrderIds.length);
-            assert.ok(dashboardData.recentOrders.some((recentOrder) => recentOrder.id === order.id));
-
-            // Fetch single order
-            const singleRes = await fetch(`http://localhost:${port}/api/buyer/orders/${order.id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            assert.equal(singleRes.status, 200);
-            const singleData = await singleRes.json();
-            assert.equal(singleData.order.id, order.id);
-
-            // Test isolation: another user should not see this order
-            const anotherUserToken = jwt.sign(
-                { userId: 99999, email: 'stranger@example.com', role: 'buyer' },
-                process.env.JWT_SECRET || 'testsecret',
-                { expiresIn: '1h' }
-            );
-
-            // Wait, userId 99999 doesn't exist in DB so requireAuth would reject with 401
-            // Let's test with another valid user if exists or nonexistent user
-            const strangerRes = await fetch(`http://localhost:${port}/api/buyer/orders/${order.id}`, {
-                headers: { Authorization: `Bearer ${anotherUserToken}` },
-            });
-            assert.equal(strangerRes.status, 401);
+            assert.equal(checkoutRes.status, 503);
+            const result = await checkoutRes.json();
+            assert.match(result.error, /payment processing is not configured/i);
+            assert.match(result.error, /no order has been created/i);
         } finally {
             server.close();
         }

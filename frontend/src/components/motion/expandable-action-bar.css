@@ -46,6 +46,15 @@
   z-index: 1;
 }
 
+.expandable-action-bar__button:disabled {
+  cursor: wait;
+  opacity: .55;
+}
+
+.expandable-action-bar__button[aria-pressed='true'] {
+  color: #eaeaea;
+}
+
 .expandable-action-bar__button[data-intent='danger']:hover,
 .expandable-action-bar__button[data-intent='danger']:focus-visible { color: #9f9f9f; }
 
@@ -58,25 +67,6 @@
 }
 
 .expandable-action-bar__icon svg { width: 18px; height: 18px; stroke-width: 1.8; }
-
-.expandable-action-bar__label {
-  display: inline-block;
-  max-width: 0;
-  overflow: hidden;
-  margin-left: 0;
-  opacity: 0;
-  white-space: nowrap;
-  transform: translateX(-3px);
-  transition: max-width .2s ease, margin-left .2s ease, opacity .16s ease, transform .2s ease;
-}
-
-.expandable-action-bar:hover .expandable-action-bar__label,
-.expandable-action-bar:focus-within .expandable-action-bar__label {
-  max-width: 76px;
-  margin-left: 7px;
-  opacity: 1;
-  transform: translateX(0);
-}
 
 .expandable-action-bar__badge {
   position: absolute;
@@ -92,11 +82,8 @@
 
 @media (max-width: 600px) {
   .expandable-action-bar__button { min-width: 30px; min-height: 30px; padding-inline: 6px; }
-  .expandable-action-bar:hover .expandable-action-bar__label,
-  .expandable-action-bar:focus-within .expandable-action-bar__label { max-width: 70px; margin-left: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .expandable-action-bar__button,
-  .expandable-action-bar__label { transition: none; }
+  .expandable-action-bar__button { transition: none; }
 }

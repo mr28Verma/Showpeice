@@ -9,6 +9,7 @@ type QuantityStepperProps = {
   max?: number
   ariaLabel?: string
   className?: string
+  disabled?: boolean
 }
 
 const HOLD_DELAY = 420
@@ -21,6 +22,7 @@ export function QuantityStepper({
   max = Number.POSITIVE_INFINITY,
   ariaLabel = 'Quantity',
   className = '',
+  disabled = false,
 }: QuantityStepperProps) {
   const reducedMotion = useReducedMotion()
   const [direction, setDirection] = useState(1)
@@ -40,6 +42,7 @@ export function QuantityStepper({
   useEffect(() => { valueRef.current = value }, [value])
   useEffect(() => {
     stepRef.current = (delta) => {
+      if (disabled) return
       const current = valueRef.current
       const next = Math.min(max, Math.max(min, current + delta))
       if (next === current) {
@@ -57,11 +60,14 @@ export function QuantityStepper({
         stopHold()
       }
     }
-  }, [max, min, onValueChange, stopHold])
+  }, [disabled, max, min, onValueChange, stopHold])
   useEffect(() => stopHold, [stopHold])
+  useEffect(() => {
+    if (disabled) stopHold()
+  }, [disabled, stopHold])
 
   const startHold = (delta: number, event: PointerEvent<HTMLButtonElement>) => {
-    if (event.button !== 0) return
+    if (disabled || event.button !== 0) return
     stopHold()
     try {
       event.currentTarget.setPointerCapture(event.pointerId)
@@ -87,6 +93,7 @@ export function QuantityStepper({
     className={`quantity-stepper ${className}`.trim()}
     role="group"
     aria-label={ariaLabel}
+    aria-busy={disabled}
     animate={reducedMotion ? undefined : pulseAnimation}
     transition={{ duration: 0.24, ease: 'easeOut' }}
     onPointerUp={stopHold}
@@ -95,7 +102,7 @@ export function QuantityStepper({
     <button
       type="button"
       aria-label={`Decrease ${ariaLabel.toLowerCase()}`}
-      disabled={!canDecrement}
+      disabled={disabled || !canDecrement}
       onPointerDown={(event) => startHold(-1, event)}
       onClick={(event) => { if (event.detail === 0) stepRef.current(-1) }}
     ><Minus size={14} aria-hidden="true"/></button>
@@ -107,8 +114,10 @@ export function QuantityStepper({
       aria-valuemin={min}
       aria-valuemax={Number.isFinite(max) ? max : undefined}
       aria-valuenow={value}
+      aria-disabled={disabled}
       aria-live="polite"
       onKeyDown={(event) => {
+        if (disabled) return
         if (event.key === 'ArrowUp' || event.key === 'ArrowRight') { event.preventDefault(); stepRef.current(1) }
         else if (event.key === 'ArrowDown' || event.key === 'ArrowLeft') { event.preventDefault(); stepRef.current(-1) }
         else if (event.key === 'Home') { event.preventDefault(); valueRef.current = min; onValueChange(min); setDirection(-1) }
@@ -129,7 +138,7 @@ export function QuantityStepper({
     <button
       type="button"
       aria-label={`Increase ${ariaLabel.toLowerCase()}`}
-      disabled={!canIncrement}
+      disabled={disabled || !canIncrement}
       onPointerDown={(event) => startHold(1, event)}
       onClick={(event) => { if (event.detail === 0) stepRef.current(1) }}
     ><Plus size={14} aria-hidden="true"/></button>

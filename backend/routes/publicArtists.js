@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../prisma');
 const requireAuth = require('../middleware/requireAuth');
 const { artistRoles, buildArtistSlugMap, getArtistSlugMap } = require('../utils/artistSlugs');
+const { publicArtworkImageUrl } = require('../utils/cloudinaryArtwork');
 
 const router = express.Router();
 const publicArtworkSelect = {
@@ -97,6 +98,9 @@ router.get('/:slug', async (req, res) => {
                 location: true,
                 instagramUrl: true,
                 websiteUrl: true,
+                email: true,
+                publicEmailVisible: true,
+                shopAnnouncement: true,
                 publicProfileVisible: true,
                 createdAt: true,
                 artworks: {
@@ -119,9 +123,18 @@ router.get('/:slug', async (req, res) => {
 
         const artworks = artist.artworks.map((item) => ({
             ...item,
-            imageUrl: item.imageUrl ? `/api/artworks/${item.id}/preview` : null,
+            imageUrl: publicArtworkImageUrl(item),
         }));
-        return res.json({ artist: { ...artist, artworks, slug: slugById.get(artistId), followerCount, isFollowing: Boolean(isFollowing), isOwnProfile: viewer?.id === artistId } });
+        const { email, publicEmailVisible, ...publicArtist } = artist;
+        return res.json({ artist: {
+            ...publicArtist,
+            publicEmail: publicEmailVisible ? email : null,
+            artworks,
+            slug: slugById.get(artistId),
+            followerCount,
+            isFollowing: Boolean(isFollowing),
+            isOwnProfile: viewer?.id === artistId,
+        } });
     } catch (error) {
         console.error('[artists/profile] Public profile query failed:', error.code || error.name || 'unknown error');
         return res.status(500).json({ error: 'We could not load this artist profile. Please try again.' });

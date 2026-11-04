@@ -12,6 +12,7 @@ import {
 import type { Address } from '../types'
 import { buyerApi } from '../buyerApi'
 import { toast } from '../../../components/ui/toast'
+import { BuyerAddressesSkeleton } from './BuyerLoadingSkeletons'
 
 type Props = {
   token: string
@@ -196,17 +197,7 @@ export function BuyerAddresses({ token }: Props) {
         </button>
       </div>
 
-      {loading ? (
-        <div className="buyer-addresses-grid">
-          {[1, 2].map((i) => (
-            <div key={i} className="buyer-address-card" style={{ height: '180px' }}>
-              <div className="buyer-skeleton-pulse buyer-skeleton-line" style={{ width: '50%' }} />
-              <div className="buyer-skeleton-pulse buyer-skeleton-line" style={{ width: '80%' }} />
-              <div className="buyer-skeleton-pulse buyer-skeleton-line" style={{ width: '60%' }} />
-            </div>
-          ))}
-        </div>
-      ) : error ? (
+      {loading ? <BuyerAddressesSkeleton /> : error ? (
         <div className="buyer-empty-state">
           <div className="buyer-empty-icon" style={{ backgroundColor: '#fee2e2', color: '#b91c1c' }}>
             <AlertCircle size={24} />

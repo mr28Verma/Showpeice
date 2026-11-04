@@ -23,6 +23,8 @@ import type { Order } from '../types'
 import { buyerApi, resolveImageUrl } from '../buyerApi'
 import { formatINR } from '../../../utils/formatCurrency'
 import { ProtectedArtworkImage } from '../../../components/ProtectedArtworkImage'
+import { Skeleton } from '../../../components/ui/Skeleton'
+import { BuyerOrdersSkeleton } from './BuyerLoadingSkeletons'
 
 type Props = {
   token: string
@@ -136,7 +138,7 @@ export function BuyerOrders({ token }: Props) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [activeFilter, setActiveFilter] = useState<OrderFilter>('all')
-  const activeView: 'overview' = 'overview'
+  const activeView = 'overview' as const
   const [currentPage, setCurrentPage] = useState(1)
   const [expandedOrders, setExpandedOrders] = useState<Record<number, boolean>>({})
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -146,8 +148,11 @@ export function BuyerOrders({ token }: Props) {
     const fetchOrders = async () => {
       try {
         const result = await buyerApi.getOrders(token)
+        if (!Array.isArray(result.orders)) {
+          throw new Error('The account service returned an invalid order history.')
+        }
         if (!cancelled) {
-          setOrders(result.orders || [])
+          setOrders(result.orders)
           setCurrentPage(1)
           setError('')
           setLoading(false)
@@ -171,7 +176,10 @@ export function BuyerOrders({ token }: Props) {
     setError('')
     try {
       const result = await buyerApi.getOrders(token)
-      setOrders(result.orders || [])
+      if (!Array.isArray(result.orders)) {
+        throw new Error('The account service returned an invalid order history.')
+      }
+      setOrders(result.orders)
       setCurrentPage(1)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not fetch orders.')
@@ -259,8 +267,8 @@ export function BuyerOrders({ token }: Props) {
           ))}
         </div>
 
-        <span className="buyer-orders-count" aria-live="polite">
-          {loading ? 'Checking records...' : `${filteredOrders.length} ${filteredOrders.length === 1 ? 'order' : 'orders'} found`}
+        <span className="buyer-orders-count" aria-live="polite" aria-busy={loading}>
+          {loading ? <Skeleton className="buyer-skeleton-order-count" /> : `${filteredOrders.length} ${filteredOrders.length === 1 ? 'order' : 'orders'} found`}
         </span>
       </div>
 
@@ -271,21 +279,7 @@ export function BuyerOrders({ token }: Props) {
         aria-labelledby={`buyer-orders-tab-${activeFilter}`}
         tabIndex={0}
       >
-        {loading ? (
-          activeView === 'overview' ? (
-            <div className="buyer-orders-list">
-              {[1, 2].map((i) => (
-                <div key={i} className="buyer-order-card" style={{ padding: '24px' }}>
-                  <div className="buyer-skeleton-pulse buyer-skeleton-line" style={{ width: '40%' }} />
-                  <div className="buyer-skeleton-pulse buyer-skeleton-line" style={{ width: '80%', height: '50px', margin: '16px 0' }} />
-                  <div className="buyer-skeleton-pulse buyer-skeleton-line" style={{ width: '30%' }} />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="buyer-orders-message" role="status">Loading order history…</div>
-          )
-        ) : error ? (
+        {loading ? <BuyerOrdersSkeleton /> : error ? (
           <div className="buyer-empty-state">
             <div className="buyer-empty-icon buyer-empty-icon-error">
               <AlertCircle size={24} />
@@ -302,16 +296,16 @@ export function BuyerOrders({ token }: Props) {
               <div className="buyer-empty-icon">
                 <ShoppingBag size={24} />
               </div>
-              <h3>{activeFilter === 'all' ? 'No orders placed yet' : `No ${activeFilter} orders`}</h3>
+              <h3>{activeFilter === 'all' ? "You haven't placed any orders yet." : `No ${activeFilter} orders`}</h3>
               <p>
                 {activeFilter === 'all'
                   ? 'When you acquire an original piece from Showpeice, all order details, shipping milestones, and authentic records will appear here.'
                   : `You do not have any orders with the ${activeFilter} status.`}
               </p>
               {activeFilter === 'all' ? (
-                <Link to="/#artwork" className="buyer-btn-primary">
+                <Link to="/gallery" className="buyer-btn-primary">
                   <Compass size={16} />
-                  <span>Explore Gallery Works</span>
+                  <span>Explore Gallery</span>
                 </Link>
               ) : (
                 <button type="button" className="buyer-btn-secondary" onClick={() => setActiveFilter('all')}>

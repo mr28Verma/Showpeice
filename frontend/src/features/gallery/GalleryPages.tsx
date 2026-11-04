@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, ShoppingBag } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, Heart, RefreshCw, ShoppingBag } from 'lucide-react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { artwork } from '../../data/artworks'
 import { artworkCategories } from '../../data/categories'
@@ -9,8 +9,10 @@ import { useCart } from '../cart/CartContext'
 import { formatINR } from '../../utils/formatCurrency'
 import { useMarket } from './MarketContext'
 import { ArtworkCard } from './ArtworkCard'
+import { Skeleton } from '../../components/ui/Skeleton'
 import { ProtectedArtworkImage } from '../../components/ProtectedArtworkImage'
 import { apiAssetUrl, apiUrl } from '../../lib/api'
+import { toast } from '../../components/ui/toast'
 
 const photo = (id: string, width = 1100) => `https://images.unsplash.com/${id}?auto=format&fit=crop&w=${width}&q=85`
 
@@ -67,6 +69,7 @@ export function LiveArtistDirectoryPage() {
   type DirectoryArtist = { id: number; slug: string; firstName: string; lastName: string; displayName: string | null; bio: string | null; avatarUrl: string | null; medium: string | null; location: string | null; followerCount: number; publishedArtworkCount: number }
   const [artists, setArtists] = useState<DirectoryArtist[] | null>(null)
   const [error, setError] = useState('')
+  const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     const controller = new AbortController()
     fetch(apiUrl('/artists'), { signal: controller.signal })
@@ -77,12 +80,12 @@ export function LiveArtistDirectoryPage() {
       })
       .catch(cause => { if (!controller.signal.aborted) setError(cause instanceof Error ? cause.message : 'Artist profiles could not be loaded.') })
     return () => controller.abort()
-  }, [])
+  }, [attempt])
 
   return <main className="route-page section-wrap">
     <div className="eyebrow"><span className="eyebrow-line"/> INDEPENDENT MAKERS</div><h1 className="route-title">Meet the artists<em>.</em></h1>
     <p className="route-intro">Discover independent makers and the works they have chosen to share.</p>
-    {error ? <p role="alert">{error}</p> : !artists ? <p role="status">Loading artist profiles…</p> : artists.length ? <div className="artist-directory-grid">{artists.map(artist => {
+    {error ? <div className="artist-directory-status" role="alert"><p>{error}</p><button type="button" className="button live-gallery-retry" onClick={() => { setError(''); setAttempt(value => value + 1) }}>Try again</button></div> : !artists ? <div className="artist-directory-grid artist-directory-grid-skeleton" role="status" aria-label="Loading artist profiles" aria-busy="true">{Array.from({ length: 6 }, (_, index) => <ArtistDirectoryCardSkeleton key={index}/>)}</div> : artists.length ? <div className="artist-directory-grid">{artists.map(artist => {
       const name = artist.displayName?.trim() || (artist.firstName + ' ' + artist.lastName).trim()
       return <Link to={'/artist/' + artist.slug} className="artist-card" key={artist.id}>
         <div className="artist-portrait">{artist.avatarUrl ? <img src={apiAssetUrl(artist.avatarUrl)} alt={name + ' profile'} loading="lazy"/> : <span className="artist-directory-initials" aria-hidden="true">{name.slice(0, 1).toUpperCase()}</span>}<ArrowUpRight size={18}/></div>
@@ -90,6 +93,19 @@ export function LiveArtistDirectoryPage() {
       </Link>
     })}</div> : <p>No public artist profiles are available yet.</p>}
   </main>
+}
+
+function ArtistDirectoryCardSkeleton() {
+  return (
+    <article className="artist-card artist-directory-skeleton-card" aria-hidden="true">
+      <div className="artist-portrait"><Skeleton className="artist-directory-skeleton-portrait"/></div>
+      <Skeleton shape="text" className="artist-directory-skeleton-title"/>
+      <Skeleton shape="text" className="artist-directory-skeleton-meta"/>
+      <Skeleton shape="text" className="artist-directory-skeleton-copy"/>
+      <Skeleton shape="text" className="artist-directory-skeleton-copy-short"/>
+      <Skeleton shape="text" className="artist-directory-skeleton-link"/>
+    </article>
+  )
 }
 
 export function ArtistProfilePage() {
@@ -108,9 +124,10 @@ export function ArtworkDetailPage() {
   const [searchParams] = useSearchParams()
   const artistSlug = searchParams.get('artist')
   const staticItem = artistSlug ? undefined : artwork.find((artworkItem) => artworkItem.id === Number(id))
-  const [liveDetail, setLiveDetail] = useState<{ key: string; artist: LiveArtistDetail; item: LiveArtworkDetail } | { key: string; error: true } | null>(null)
+  const [liveDetail, setLiveDetail] = useState<{ key: string; artist: LiveArtistDetail; item: LiveArtworkDetail } | { key: string; error: true; message: string } | null>(null)
+  const [detailAttempt, setDetailAttempt] = useState(0)
   const { addItem } = useCart()
-  const { favorites, toggleFavorite } = useMarket()
+  const { favorites, favoritesLoading, favoritesError, retryFavorites, toggleFavorite } = useMarket()
   const [added, setAdded] = useState(false)
   const requestKey = artistSlug ? `${artistSlug}:${id}` : ''
 
@@ -125,11 +142,11 @@ export function ArtworkDetailPage() {
         if (!item) throw new Error('This artwork could not be found.')
         setLiveDetail({ key: requestKey, artist: result.artist, item })
       })
-      .catch(() => {
-        if (!controller.signal.aborted) setLiveDetail({ key: requestKey, error: true })
+      .catch((cause: unknown) => {
+        if (!controller.signal.aborted) setLiveDetail({ key: requestKey, error: true, message: cause instanceof Error ? cause.message : 'This artwork could not be loaded.' })
       })
     return () => controller.abort()
-  }, [artistSlug, id, requestKey])
+  }, [artistSlug, id, requestKey, detailAttempt])
 
   const loadedDetail = liveDetail?.key === requestKey && 'item' in liveDetail ? liveDetail : null
   const loadFailed = liveDetail?.key === requestKey && 'error' in liveDetail
@@ -162,21 +179,49 @@ export function ArtworkDetailPage() {
   } : null
 
   if (!item) {
-    if (artistSlug && !loadFailed) return <main className="route-page section-wrap" role="status">Loading artwork…</main>
+    if (artistSlug && !loadFailed) return <ArtworkDetailSkeleton />
+    if (artistSlug && loadFailed) return <main className="artwork-detail-error route-page section-wrap" role="alert">
+      <div className="eyebrow"><span className="eyebrow-line"/> ARTWORK UNAVAILABLE</div>
+      <h1 className="route-title">This piece could not be opened.</h1>
+      <p>{liveDetail && 'message' in liveDetail ? liveDetail.message : 'The artwork could not be loaded.'}</p>
+      <button type="button" className="button live-gallery-retry" onClick={() => { setLiveDetail(null); setDetailAttempt(value => value + 1) }}>Try again</button>
+    </main>
     return <NotFoundPage/>
   }
 
   const isFavorite = favorites.includes(item.id)
-  const addToBag = () => {
+  const addToBag = async () => {
     if (!item.imageSrc) return
-    addItem({ id: item.id, title: item.title, artist: item.artist, price: formatINR(item.price), image: item.imageSrc, isProtected: item.isProtected })
-    setAdded(true)
+    try {
+      await addItem({ id: item.id, title: item.title, artist: item.artist, price: formatINR(item.price), image: item.imageSrc, isProtected: item.isProtected })
+      setAdded(true)
+      toast.success('Artwork added to your bag', item.title)
+    } catch (error) {
+      toast.error('Artwork could not be added', error instanceof Error ? error.message : 'Please try again.')
+    }
   }
 
   return <main className="artwork-detail-page section-wrap">
     <div className="artwork-detail-image">{item.imageSrc ? <ProtectedArtworkImage isProtected={item.isProtected} src={item.imageSrc} alt={`${item.title}, an original work by ${item.artist}`} onError={(event) => { event.currentTarget.style.display = 'none' }}/> : <div className="artwork-detail-image-placeholder">Artwork image unavailable</div>}</div>
-    <section className="artwork-detail-copy"><div className="eyebrow"><span className="eyebrow-line"/> {item.category.toUpperCase()}</div><h1 className="route-title">{item.title}<em>.</em></h1><Link className="detail-artist-link" to={`/artist/${item.artistId}`}>by {item.artist} <ArrowUpRight size={14}/></Link><p className="artwork-detail-description">{item.description}</p>{(item.medium || item.dimensions) && <div className="artwork-specs">{item.medium && <div><span>MEDIUM</span><strong>{item.medium}</strong></div>}{item.dimensions && <div><span>DIMENSIONS</span><strong>{item.dimensions}</strong></div>}</div>}<div className="artwork-detail-price">{formatINR(item.price)}</div><div className="artwork-detail-actions"><button className="button button-dark" onClick={addToBag} disabled={!item.imageSrc}>Add to bag <ShoppingBag size={16}/></button><button className={isFavorite ? 'detail-favorite is-favorite' : 'detail-favorite'} onClick={() => toggleFavorite(item.id)} aria-label={isFavorite ? 'Remove from favourites' : 'Add to favourites'} aria-pressed={isFavorite}><Heart size={19} fill={isFavorite ? 'currentColor' : 'none'}/></button></div>{added && <p className="detail-added-message" role="status">Added to your bag. Open the bag icon to review your selection.</p>}<p className="detail-prototype-note">Checkout is not connected yet.</p></section>
+    <section className="artwork-detail-copy"><div className="eyebrow"><span className="eyebrow-line"/> {item.category.toUpperCase()}</div><h1 className="route-title">{item.title}<em>.</em></h1><Link className="detail-artist-link" to={`/artist/${item.artistId}`}>by {item.artist} <ArrowUpRight size={14}/></Link><p className="artwork-detail-description">{item.description}</p>{(item.medium || item.dimensions) && <div className="artwork-specs">{item.medium && <div><span>MEDIUM</span><strong>{item.medium}</strong></div>}{item.dimensions && <div><span>DIMENSIONS</span><strong>{item.dimensions}</strong></div>}</div>}<div className="artwork-detail-price">{formatINR(item.price)}</div><div className="artwork-detail-actions"><button className="button button-dark" onClick={addToBag} disabled={!item.imageSrc}>Add to bag <ShoppingBag size={16}/></button><button className={isFavorite ? 'detail-favorite is-favorite' : 'detail-favorite'} onClick={() => favoritesError ? retryFavorites() : toggleFavorite(item.id)} aria-label={favoritesError ? 'Retry loading saved artworks' : isFavorite ? 'Remove from favourites' : 'Add to favourites'} aria-pressed={favoritesError ? undefined : isFavorite} aria-busy={favoritesLoading}>{favoritesLoading ? <Skeleton shape="circle" className="favorite-action-skeleton" /> : favoritesError ? <RefreshCw size={16} aria-hidden="true" /> : <Heart size={19} fill={isFavorite ? 'currentColor' : 'none'}/>}</button></div>{added && <p className="detail-added-message" role="status">Added to your bag. Open the bag icon to review your selection.</p>}<p className="detail-prototype-note">Checkout is not connected yet.</p></section>
   </main>
+}
+
+function ArtworkDetailSkeleton() {
+  return (
+    <main className="artwork-detail-page artwork-detail-skeleton" role="status" aria-label="Loading artwork details" aria-busy="true">
+      <div className="artwork-detail-image"><Skeleton className="artwork-detail-skeleton-image"/></div>
+      <section className="artwork-detail-copy" aria-hidden="true">
+        <Skeleton shape="text" className="artwork-detail-skeleton-kicker"/>
+        <Skeleton className="artwork-detail-skeleton-title"/>
+        <Skeleton shape="text" className="artwork-detail-skeleton-artist"/>
+        <div className="artwork-detail-skeleton-description"><Skeleton shape="text"/><Skeleton shape="text"/><Skeleton shape="text"/><Skeleton shape="text"/></div>
+        <div className="artwork-detail-skeleton-specs"><Skeleton shape="text"/><Skeleton shape="text"/></div>
+        <Skeleton className="artwork-detail-skeleton-price"/>
+        <div className="artwork-detail-skeleton-actions"><Skeleton className="artwork-detail-skeleton-button"/><Skeleton shape="circle" className="artwork-detail-skeleton-favorite"/></div>
+      </section>
+    </main>
+  )
 }
 
 export function CollectionPage() {

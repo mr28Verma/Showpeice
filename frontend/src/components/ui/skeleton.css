@@ -1,0 +1,337 @@
+.showpeice-skeleton {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--skeleton-radius, 7px);
+  background-color: #191919;
+  background-image: linear-gradient(105deg, #191919 25%, #262626 45%, #191919 65%);
+  background-size: 220% 100%;
+  animation: showpeice-skeleton-shimmer 1.55s ease-in-out infinite;
+}
+
+.showpeice-skeleton[data-animation='pulse'] {
+  animation-name: showpeice-skeleton-pulse;
+  background-image: none;
+}
+
+.showpeice-skeleton[data-animation='none'] { animation: none; }
+.showpeice-skeleton-text { height: .72em; border-radius: 999px; }
+.showpeice-skeleton-circle { aspect-ratio: 1; border-radius: 50%; }
+
+@keyframes showpeice-skeleton-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -120% 0; }
+}
+
+@keyframes showpeice-skeleton-pulse {
+  50% { opacity: .62; }
+}
+
+.showpeice-artwork-card-skeleton {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.showpeice-artwork-card-skeleton-image { width: 100%; aspect-ratio: 1 / 1.08; }
+.showpeice-artwork-card-skeleton-copy { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 0 0; }
+.showpeice-artwork-card-skeleton-details { display: grid; min-width: 0; flex: 1; gap: 8px; }
+.showpeice-artwork-card-skeleton-title { width: 72%; height: 14px; }
+.showpeice-artwork-card-skeleton-artist-row { display: flex; align-items: center; gap: 9px; }
+.showpeice-artwork-card-skeleton-artist { width: min(43%, 110px); height: 11px; }
+.showpeice-artwork-card-skeleton-price { width: 52px; height: 11px; }
+.showpeice-artwork-card-skeleton-actions { display: flex; gap: 8px; }
+.showpeice-artwork-card-skeleton-action { width: 28px; height: 28px; }
+.favorite-action-skeleton { width: 18px; height: 18px; }
+
+.live-gallery-grid-skeleton { align-items: start; }
+.live-gallery-card-skeleton { padding: 11px 11px 0; border: 1px solid #292929; border-radius: 9px; background: #171717; }
+.live-gallery-card-skeleton .showpeice-artwork-card-skeleton-image { aspect-ratio: 1; border-radius: 5px; }
+.live-gallery-card-skeleton .showpeice-artwork-card-skeleton-copy { min-height: 78px; padding: 15px 2px 14px; }
+.live-gallery-card-skeleton .showpeice-artwork-card-skeleton-title { width: 78%; height: 18px; }
+.live-gallery-card-skeleton .showpeice-artwork-card-skeleton-artist { width: min(90px, 50%); }
+.live-gallery-card-skeleton .showpeice-artwork-card-skeleton-price { width: 48px; }
+.live-gallery-card-skeleton .showpeice-artwork-card-skeleton-actions { gap: 7px; }
+.live-gallery-card-skeleton .showpeice-artwork-card-skeleton-action { width: 34px; height: 34px; border: 1px solid #383838; }
+
+.artist-directory-grid-skeleton { pointer-events: none; }
+.artist-directory-skeleton-card .artist-portrait { aspect-ratio: 4 / 5; overflow: hidden; background: #191919; }
+.artist-directory-skeleton-card .artist-directory-skeleton-portrait { width: 100%; height: 100%; border-radius: 0; }
+.artist-directory-skeleton-title { width: 63%; height: 20px; margin-top: 14px; }
+.artist-directory-skeleton-meta { width: 56%; height: 10px; margin-top: 8px; }
+.artist-directory-skeleton-copy { width: 90%; height: 11px; margin-top: 12px; }
+.artist-directory-skeleton-copy-short { width: 68%; height: 11px; margin-top: 7px; }
+.artist-directory-skeleton-link { width: 38%; height: 9px; margin-top: 15px; }
+.artist-directory-status { display: grid; justify-items: start; gap: 14px; margin-top: 28px; color: #a1a1aa; }
+.artist-directory-status p { margin: 0; }
+
+.artwork-detail-skeleton { pointer-events: none; }
+.artwork-detail-skeleton-image { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 0; }
+.artwork-detail-skeleton .artwork-detail-image { position: sticky; }
+.artwork-detail-skeleton .artwork-detail-copy { display: grid; align-content: start; gap: 18px; }
+.artwork-detail-skeleton-kicker { width: 126px; height: 9px; margin: 4px 0 3px; }
+.artwork-detail-skeleton-title { width: 92%; height: clamp(47px, 5.5vw, 68px); margin: 4px 0; }
+.artwork-detail-skeleton-artist { width: 44%; height: 12px; }
+.artwork-detail-skeleton-description { display: grid; gap: 12px; margin-top: 8px; }
+.artwork-detail-skeleton-description .showpeice-skeleton { height: 11px; }
+.artwork-detail-skeleton-description .showpeice-skeleton:last-child { width: 58%; }
+.artwork-detail-skeleton-specs { display: grid; gap: 10px; padding: 18px 0; border-top: 1px solid #2a2a2a; border-bottom: 1px solid #2a2a2a; }
+.artwork-detail-skeleton-specs .showpeice-skeleton { width: 42%; height: 11px; }
+.artwork-detail-skeleton-specs .showpeice-skeleton:last-child { width: 31%; }
+.artwork-detail-skeleton-price { width: 138px; height: 25px; margin-top: 4px; }
+.artwork-detail-skeleton-actions { display: flex; align-items: center; gap: 10px; }
+.artwork-detail-skeleton-button { height: 48px; flex: 1; border-radius: 6px; }
+.artwork-detail-skeleton-favorite { width: 48px; height: 48px; flex: 0 0 48px; border-radius: 6px; }
+.artwork-detail-error { min-height: 56vh; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; }
+.artwork-detail-error .route-title { margin: 0; }
+.artwork-detail-error > p { max-width: 50ch; color: var(--text-secondary); }
+
+.spotify-profile-skeleton .spotify-hero-backdrop { background: #111; }
+.spotify-profile-skeleton-backdrop { position: absolute; inset: 0; border-radius: 0; }
+.spotify-profile-skeleton .spotify-hero-top { min-height: 84px; }
+.spotify-profile-skeleton-back-link { width: 192px; height: 12px; }
+.spotify-profile-skeleton-share { width: 92px; height: 12px; }
+.spotify-profile-skeleton-verified { width: 148px; height: 12px; margin-bottom: 16px; }
+.spotify-profile-skeleton-title { width: min(680px, 82vw); height: clamp(48px, 7vw, 88px); margin-bottom: 16px; }
+.spotify-profile-skeleton-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
+.spotify-profile-skeleton-meta .showpeice-skeleton { width: 128px; height: 12px; }
+.spotify-profile-skeleton-announcement { width: min(480px, 75vw); height: 42px; margin-bottom: 18px; }
+.spotify-profile-skeleton-button { width: 158px; height: 44px; border-radius: 999px; }
+.spotify-profile-skeleton-button-short { width: 132px; }
+.spotify-profile-skeleton .spotify-tabs-track { min-height: 54px; }
+.spotify-profile-skeleton-tab { width: 110px; height: 13px; }
+.spotify-profile-skeleton-stats { pointer-events: none; }
+.spotify-profile-skeleton-stat { display: grid; gap: 8px; padding: 0 12px; border-right: 1px solid var(--sp-border); }
+.spotify-profile-skeleton-stat:last-child { border-right: 0; }
+.spotify-profile-skeleton-stat .showpeice-skeleton:first-child { width: 62px; height: 25px; }
+.spotify-profile-skeleton-stat .showpeice-skeleton:last-child { width: 76%; height: 9px; }
+.spotify-profile-skeleton-artworks { margin-top: 50px; }
+.spotify-profile-skeleton-artworks .spotify-section-header { align-items: center; }
+.spotify-profile-skeleton-section-kicker { width: 134px; height: 9px; margin-bottom: 10px; }
+.spotify-profile-skeleton-section-title { width: min(330px, 58vw); height: 32px; }
+.spotify-profile-skeleton-view-all { width: 92px; height: 11px; }
+.spotify-profile-skeleton-card { min-width: 0; padding: 0; border: 1px solid #292929; border-radius: 8px; background: #151515; }
+.spotify-profile-skeleton-card .showpeice-artwork-card-skeleton-image { aspect-ratio: 1 / 1.12; border-radius: 0; }
+.spotify-profile-skeleton-card .showpeice-artwork-card-skeleton-copy { padding: 13px; }
+.spotify-profile-skeleton-card .showpeice-artwork-card-skeleton-actions { display: none; }
+
+.cart-bag-count-skeleton { display: inline-block; width: 54px; height: 15px; margin-left: 4px; vertical-align: middle; }
+.cart-page-skeleton { margin-top: 28px; }
+.cart-modal-items-skeleton { pointer-events: none; }
+.cart-modal-footer-skeleton { pointer-events: none; }
+.cart-modal-footer-skeleton .cart-skeleton-note { width: 88%; }
+.cart-modal-footer-skeleton .cart-skeleton-checkout { width: 100%; }
+.cart-skeleton-checkout { border-radius: 6px; }
+
+.search-result-skeleton { min-height: 60px; display: flex; align-items: center; gap: 11px; padding: 8px 2px; border-bottom: 1px solid rgb(240 240 240 / 8%); }
+.search-result-skeleton .search-result-image { width: 40px; height: 44px; flex: 0 0 40px; border-radius: 3px; }
+.search-result-skeleton .search-result-arrow { width: 15px; height: 15px; flex: 0 0 15px; }
+.search-view-all-skeleton { min-height: 44px; display: flex; align-items: center; padding: 0 2px; border-top: 1px solid rgb(240 240 240 / 12%); }
+.search-view-all-skeleton .showpeice-skeleton { width: 94px; height: 11px; }
+
+.artist-settings-skeleton { max-width: 1280px; margin: 0 auto; pointer-events: none; }
+.artist-skeleton-save-status { width: 138px; height: 12px; }
+.artist-skeleton-save-button { width: 142px; height: 40px; border-radius: 999px; }
+.artist-settings-skeleton .artist-settings-section header { display: grid; gap: 10px; }
+.artist-skeleton-section-title { width: min(250px, 58vw); height: 20px; }
+.artist-skeleton-section-description { width: min(480px, 74vw); height: 11px; }
+.artist-settings-row-skeleton .artist-settings-copy { display: grid; gap: 9px; }
+.artist-skeleton-row-title { width: min(310px, 60vw); height: 13px; }
+.artist-skeleton-row-description { width: min(460px, 70vw); height: 10px; }
+.artist-skeleton-switch { width: 48px; height: 27px; flex: 0 0 48px; border-radius: 999px; }
+.artist-skeleton-setting-field { display: grid; gap: 9px; }
+.artist-skeleton-field-label { width: 32%; height: 10px; }
+.artist-skeleton-field-input { width: 100%; height: 42px; border-radius: 6px; }
+.artist-skeleton-secondary-button { width: 164px; height: 38px; border-radius: 7px; }
+
+.artist-profile-skeleton { pointer-events: none; }
+.artist-profile-skeleton .artist-studio-hero-backdrop { background: #111; }
+.artist-profile-skeleton-backdrop { position: absolute; inset: 0; border-radius: 0; }
+.artist-profile-skeleton .artist-studio-hero-top { align-items: center; }
+.artist-profile-skeleton-pill { width: 158px; height: 30px; border-radius: 999px; }
+.artist-profile-skeleton-link { width: min(196px, 44vw); height: 30px; border-radius: 999px; }
+.artist-profile-skeleton .artist-studio-hero-content { align-items: flex-end; }
+.artist-profile-skeleton .artist-studio-identity-block { align-items: flex-end; }
+.artist-profile-skeleton-avatar { width: 96px; height: 96px; flex: 0 0 96px; }
+.artist-profile-skeleton-copy { display: grid; min-width: 0; gap: 10px; }
+.artist-profile-skeleton-kicker { width: 132px; height: 10px; }
+.artist-profile-skeleton-name { width: min(420px, 50vw); height: clamp(40px, 5vw, 60px); }
+.artist-profile-skeleton-meta { width: min(500px, 64vw); height: 12px; }
+.artist-profile-skeleton-bio { width: min(430px, 60vw); height: 11px; }
+.artist-profile-skeleton .artist-studio-hero-actions { align-items: center; }
+.artist-profile-skeleton-action { width: 154px; height: 42px; border-radius: 999px; }
+.artist-profile-skeleton-action-short { width: 178px; }
+.artist-profile-skeleton .artist-studio-stat-card { display: grid; align-content: start; gap: 12px; }
+.artist-profile-skeleton-stat-label { width: 62%; height: 10px; }
+.artist-profile-skeleton-stat-value { width: 58px; height: 27px; }
+.artist-profile-skeleton-stat-note { width: 76%; height: 10px; }
+.artist-profile-skeleton .artist-studio-tabs-bar { pointer-events: none; }
+.artist-profile-skeleton-tab { width: 138px; height: 14px; margin-right: 20px; }
+.artist-profile-skeleton-panels { margin-top: 28px; }
+.artist-profile-skeleton-panels .artist-studio-card { display: grid; align-content: start; gap: 18px; }
+.artist-profile-skeleton-panel-title { width: min(240px, 55%); height: 17px; }
+.artist-profile-skeleton-panels .showpeice-skeleton:not(.artist-profile-skeleton-panel-title) { width: 84%; height: 11px; }
+
+.artist-artworks-skeleton { pointer-events: none; }
+.artist-artworks-skeleton > header { align-items: center; }
+.artist-skeleton-art-kicker { width: 116px; height: 9px; margin-bottom: 8px; }
+.artist-skeleton-art-title { width: min(260px, 48vw); height: 25px; }
+.artist-skeleton-art-count { width: 88px; height: 10px; }
+.artist-artwork-card-skeleton { padding: 0; border: 1px solid #2a2a2a; border-radius: 7px; background: #161616; }
+.artist-artwork-card-skeleton .showpeice-artwork-card-skeleton-image { aspect-ratio: 1 / 1.1; border-radius: 0; }
+.artist-artwork-card-skeleton .showpeice-artwork-card-skeleton-copy { padding: 12px; }
+.artist-artwork-card-skeleton .showpeice-artwork-card-skeleton-artist { display: none; }
+.artist-artwork-card-skeleton .showpeice-artwork-card-skeleton-actions { display: none; }
+.artist-artwork-card-skeleton .showpeice-artwork-card-skeleton-title { width: 64%; }
+.artist-artwork-card-skeleton .showpeice-artwork-card-skeleton-price { width: 46px; }
+
+.studio-skeleton-page-empty { min-height: 380px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; pointer-events: none; }
+.artist-skeleton-empty-icon { width: 28px; height: 28px; }
+.artist-skeleton-empty-title { width: min(280px, 65%); height: 23px; }
+.artist-skeleton-empty-description { width: min(370px, 82%); height: 11px; }
+.artist-skeleton-chart { display: grid; width: min(560px, 100%); height: 112px; grid-template-columns: repeat(7, minmax(0, 1fr)); align-items: end; gap: 14px; margin-top: 14px; }
+.artist-skeleton-chart .showpeice-skeleton { width: 100%; height: 45%; }
+.artist-skeleton-chart .showpeice-skeleton:nth-child(2n) { height: 76%; }
+.artist-skeleton-chart .showpeice-skeleton:nth-child(3n) { height: 59%; }
+
+.buyer-page-heading-skeleton { display: grid; justify-items: start; gap: 10px; }
+.buyer-skeleton-kicker { width: 142px; height: 9px; }
+.buyer-skeleton-page-title { width: min(320px, 70%); height: 40px; }
+.buyer-skeleton-page-subtitle { width: min(570px, 86%); height: 12px; margin-top: 2px; }
+.buyer-orders-toolbar-skeleton { pointer-events: none; }
+.buyer-skeleton-order-filter { width: 76px; height: 34px; border-radius: 999px; }
+.buyer-skeleton-order-count { width: 102px; height: 11px; }
+.buyer-skeleton-order-number { width: 132px; height: 14px; }
+.buyer-skeleton-order-date { width: 116px; height: 11px; }
+.buyer-skeleton-order-badge { width: 78px; height: 23px; border-radius: 999px; }
+.buyer-skeleton-order-badge-short { width: 56px; }
+.buyer-order-skeleton .buyer-order-body { min-height: 122px; }
+.buyer-skeleton-order-image { width: 86px; height: 102px; flex: 0 0 86px; border-radius: 6px; }
+.buyer-order-skeleton-info { display: grid; align-content: center; gap: 11px; }
+.buyer-skeleton-order-title { width: min(290px, 72%); height: 16px; }
+.buyer-skeleton-order-artist { width: min(190px, 50%); height: 11px; }
+.buyer-skeleton-order-quantity { width: 54px; height: 10px; }
+.buyer-order-skeleton-total { display: grid; gap: 8px; }
+.buyer-skeleton-order-total-label { width: 40px; height: 10px; }
+.buyer-skeleton-order-total-value { width: 84px; height: 14px; }
+.buyer-skeleton-order-link { width: 104px; height: 11px; }
+
+.buyer-addresses-header-skeleton { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.buyer-addresses-header-skeleton .buyer-section-header { margin: 0; }
+.buyer-skeleton-add-button { width: 158px; height: 43px; border-radius: 999px; }
+.buyer-address-skeleton { min-height: 206px; gap: 14px; }
+.buyer-skeleton-address-title { width: 58%; height: 16px; }
+.buyer-address-skeleton-lines { display: grid; align-content: start; gap: 9px; margin: 4px 0 14px; }
+.buyer-skeleton-address-line { width: 92%; height: 11px; }
+.buyer-skeleton-address-line-medium { width: 75%; }
+.buyer-skeleton-address-line-short { width: 51%; }
+.buyer-address-skeleton .buyer-address-actions { margin-top: auto; }
+.buyer-skeleton-address-action { width: 88px; height: 32px; border-radius: 6px; }
+
+.buyer-profile-skeleton-card { display: flex; flex-direction: column; align-items: center; }
+.buyer-skeleton-profile-avatar { width: 110px; height: 110px; margin: 0 auto 16px; }
+.buyer-skeleton-profile-name { width: 64%; height: 18px; margin-bottom: 6px; }
+.buyer-skeleton-profile-email { width: 82%; height: 11px; }
+.buyer-skeleton-profile-meta { display: grid; width: 100%; gap: 12px; margin-top: 22px; }
+.buyer-skeleton-profile-meta .showpeice-skeleton { width: 82%; height: 11px; }
+.buyer-profile-skeleton-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 19px 16px; }
+.buyer-profile-skeleton-field { display: grid; align-content: start; gap: 9px; min-width: 0; }
+.buyer-skeleton-field-label { width: 42%; height: 9px; }
+.buyer-skeleton-field-input { width: 100%; height: 42px; border-radius: 6px; }
+.buyer-skeleton-profile-save { width: 148px; height: 42px; grid-column: 1 / -1; margin-top: 3px; border-radius: 999px; }
+
+.buyer-settings-skeleton-panel { display: grid; gap: 5px; }
+.buyer-skeleton-settings-heading { width: min(240px, 65%); height: 18px; margin-bottom: 8px; }
+.buyer-toggle-skeleton-row { pointer-events: none; }
+.buyer-skeleton-setting-title { width: min(280px, 66vw); height: 14px; margin-bottom: 8px; }
+.buyer-skeleton-setting-description { width: min(440px, 72vw); height: 11px; }
+.buyer-skeleton-switch { width: 44px; height: 24px; flex: 0 0 44px; border-radius: 999px; }
+.buyer-settings-skeleton-panel .buyer-profile-skeleton-field { margin: 7px 0; }
+
+.buyer-sidebar-account-skeleton { width: min(124px, 100%); height: 10px; margin-top: 4px; }
+.buyer-gallery-loading { min-width: 0; }
+.buyer-gallery-skeleton-tools { display: flex; gap: 12px; margin-bottom: 25px; }
+.buyer-gallery-skeleton-filter { width: 152px; height: 40px; border-radius: 6px; }
+.buyer-gallery-skeleton-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 18px; }
+.buyer-gallery-skeleton-grid .showpeice-artwork-card-skeleton-copy { align-items: flex-start; }
+
+.cart-page-skeleton { display: grid; gap: 0; }
+.cart-skeleton-subtotal { display: flex; justify-content: space-between; align-items: center; margin-top: 23px; padding-top: 18px; border-top: 1px solid #303030; }
+.cart-skeleton-subtotal-label { width: 72px; height: 12px; }
+.cart-skeleton-subtotal-value { width: 102px; height: 16px; }
+.cart-skeleton-note { width: 82%; height: 11px; margin-top: 17px; }
+.cart-skeleton-checkout { width: min(260px, 100%); height: 47px; margin-top: 16px; border-radius: 999px; }
+
+.search-results-skeleton { pointer-events: none; }
+.search-result-skeleton .search-result-image { background: transparent; }
+.search-result-skeleton-copy { display: grid; flex: 1; gap: 9px; }
+.search-result-skeleton-title { width: 76%; height: 13px; }
+.search-result-skeleton-artist { width: 48%; height: 10px; }
+
+@media (max-width: 900px) {
+  .buyer-gallery-skeleton-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 14px; }
+}
+
+@media (max-width: 700px) {
+  .buyer-profile-skeleton-form { grid-template-columns: 1fr; }
+  .buyer-gallery-skeleton-grid { gap: 18px 12px; }
+  .buyer-gallery-skeleton-tools { gap: 8px; margin-bottom: 18px; }
+  .buyer-gallery-skeleton-filter { width: min(44vw, 152px); height: 36px; }
+  .artwork-detail-skeleton { gap: 0; padding-top: 30px; padding-bottom: 78px; }
+  .artwork-detail-skeleton .artwork-detail-image { position: relative; top: auto; height: 115vw; min-height: 340px; max-height: 590px; }
+  .artwork-detail-skeleton .artwork-detail-copy { padding-top: 34px; }
+  .artwork-detail-skeleton-title { height: 52px; }
+  .spotify-profile-skeleton .spotify-hero-top { min-height: 64px; }
+  .spotify-profile-skeleton-back-link { width: 138px; }
+  .spotify-profile-skeleton-share { width: 70px; }
+  .spotify-profile-skeleton-verified { width: 124px; }
+  .spotify-profile-skeleton-title { width: 88%; height: 45px; }
+  .spotify-profile-skeleton-meta { gap: 8px; margin-bottom: 20px; }
+  .spotify-profile-skeleton-meta .showpeice-skeleton { width: 96px; }
+  .spotify-profile-skeleton-announcement { width: 100%; }
+  .spotify-profile-skeleton-button { width: min(44vw, 158px); }
+  .spotify-profile-skeleton-button-short { width: min(38vw, 132px); }
+  .spotify-profile-skeleton .spotify-tabs-track { gap: 20px; }
+  .spotify-profile-skeleton-tab { width: 76px; }
+  .spotify-profile-skeleton-stat { padding: 0 5px; }
+  .spotify-profile-skeleton-stat .showpeice-skeleton:first-child { width: 48px; }
+  .spotify-profile-skeleton-artworks { margin-top: 36px; }
+  .spotify-profile-skeleton-view-all { width: 62px; }
+  .artist-profile-skeleton .artist-studio-hero-content { align-items: flex-start; flex-direction: column; }
+  .artist-profile-skeleton .artist-studio-identity-block { align-items: flex-start; flex-direction: column; gap: 16px; }
+  .artist-profile-skeleton-name { width: min(82vw, 360px); height: 44px; }
+  .artist-profile-skeleton-meta,
+  .artist-profile-skeleton-bio { width: min(82vw, 420px); }
+  .artist-profile-skeleton .artist-studio-hero-actions { width: 100%; }
+  .artist-profile-skeleton-action { width: 42%; }
+  .artist-profile-skeleton-action-short { width: 52%; }
+  .artist-profile-skeleton-tab { width: 90px; margin-right: 7px; }
+  .artist-profile-skeleton-panels { grid-template-columns: 1fr; }
+  .artist-skeleton-chart { gap: 8px; }
+}
+
+@media (max-width: 900px) {
+  .buyer-profile-skeleton .buyer-profile-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+.cart-line-list-skeleton { pointer-events: none; }
+.cart-line-skeleton { min-height: 150px; }
+.cart-line-skeleton-info { min-height: 112px; }
+.cart-line-skeleton-title { width: min(270px, 74%); height: 17px; margin: 3px 0 7px; }
+.cart-line-skeleton-artist { width: min(170px, 48%); height: 11px; margin-bottom: 12px; }
+.cart-line-skeleton-price { width: 92px; height: 13px; }
+.cart-line-skeleton-controls { margin-top: auto; }
+.cart-line-skeleton-quantity { width: 100px; height: 34px; border-radius: 6px; }
+.cart-line-skeleton-remove { width: 64px; height: 12px; }
+
+.showpeice-artwork-image[data-showpeice-loading='true'] {
+  background-color: #191919;
+  background-image: linear-gradient(105deg, #191919 25%, #262626 45%, #191919 65%);
+  background-size: 220% 100%;
+  animation: showpeice-skeleton-shimmer 1.55s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showpeice-skeleton,
+  .showpeice-artwork-image[data-showpeice-loading='true'] { animation: none; }
+}

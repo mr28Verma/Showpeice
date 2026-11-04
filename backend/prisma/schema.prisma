@@ -26,11 +26,18 @@ model User {
   websiteUrl String?
   emailNotifications Boolean @default(false)
   publicProfileVisible Boolean @default(true)
+  weeklyDigest Boolean @default(false)
+  orderNotifications Boolean @default(true)
+  publicEmailVisible Boolean @default(false)
+  shopAnnouncement String? @db.VarChar(500)
   artworks  Artwork[]
   followers ArtistFollow[] @relation("ArtistFollowers")
   following ArtistFollow[] @relation("UserFollowing")
   orders    Order[]        @relation("BuyerOrders")
   addresses Address[]
+  cart      Cart?
+  cartItems CartItem[]
+  favorites Favorite[]
 }
 
 model Artwork {
@@ -42,12 +49,15 @@ model Artwork {
   price       Int
   category    String
   imageUrl    String?
+  imagePublicId String?
   isProtected Boolean  @default(false)
   available   Boolean  @default(true)
   status      String   @default("draft")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   orderItems  OrderItem[]
+  cartItems   CartItem[]
+  favorites   Favorite[]
 
   @@index([artistId, updatedAt])
 }
@@ -90,7 +100,7 @@ model Order {
   buyer             User        @relation("BuyerOrders", fields: [buyerId], references: [id], onDelete: Cascade)
   totalAmount       Int
   status            String      @default("processing")
-  paymentStatus     String      @default("paid")
+  paymentStatus     String      @default("pending")
   paymentMethod     String      @default("card")
   addressId         Int?
   address           Address?    @relation(fields: [addressId], references: [id], onDelete: SetNull)
@@ -116,4 +126,42 @@ model OrderItem {
 
   @@index([orderId])
   @@index([artworkId])
+}
+
+model Cart {
+  id        Int        @id @default(autoincrement())
+  userId    Int        @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@unique([userId, id])
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  cartId    Int
+  artworkId Int
+  quantity  Int      @default(1)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cart      Cart     @relation(fields: [userId, cartId], references: [userId, id], onDelete: Cascade)
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, artworkId])
+  @@index([cartId])
+}
+
+model Favorite {
+  userId    Int
+  artworkId Int
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+
+  @@id([userId, artworkId])
+  @@index([artworkId, createdAt])
 }

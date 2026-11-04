@@ -1,17 +1,21 @@
 ﻿import { useState, type FormEvent, type ReactNode } from 'react'
 import { ArrowRight } from 'lucide-react'
-import { Link, useLocation, useSearchParams } from 'react-router-dom'
+import { Link, Navigate, useLocation, useSearchParams } from 'react-router-dom'
 import { SignUpModal } from './components/SignUpModal'
+import { getSafeReturnTo } from '../../lib/authRedirect'
+import { getStoredAccountRole } from '../../lib/authSession'
+import { getLogoDestination } from '../../lib/logoDestination'
 
 function AuthFrame({ children, title, description, providedAuth = false }: { children: ReactNode; title?: string; description?: string; providedAuth?: boolean }) {
+  const logoPath = getLogoDestination()
   return <main className="auth-page">
     <section className="auth-art" aria-label="Showpeice gallery">
       <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=1200&q=85" alt="A quiet gallery wall with original artwork" onError={(event) => { event.currentTarget.style.display = 'none' }}/>
-      <Link className="auth-art-brand" to="/"><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong>Showpeice</strong></Link>
+      <Link className="auth-art-brand" to={logoPath}><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong>Showpeice</strong></Link>
       <div className="auth-art-copy"><p className="auth-art-headline">Art that<br/>speaks to you.</p><p className="auth-art-supporting">Discover original works. Meet independent artists. Find something worth keeping.</p></div><span className="auth-art-caption">ORIGINAL WORKS · INDEPENDENT ARTISTS</span>
     </section>
     <section className={providedAuth ? 'auth-panel auth-panel-provided' : 'auth-panel'}>
-      <Link className="auth-mobile-brand" to="/"><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong>Showpeice</strong></Link>
+      <Link className="auth-mobile-brand" to={logoPath}><img className="brand-logo" src="/showpeice-logo.svg" alt=""/><strong>Showpeice</strong></Link>
       <div className={providedAuth ? 'auth-form-wrap auth-form-wrap-provided' : 'auth-form-wrap'}>{providedAuth ? children : <><div className="eyebrow"><span className="eyebrow-line"/> SHOWPEICE ACCOUNT</div><h1>{title}</h1><p className="auth-description">{description}</p>{children}</>}</div>
       <div className="auth-footnote">A HOME FOR ART THAT MEANS SOMETHING.</div>
     </section>
@@ -20,6 +24,10 @@ function AuthFrame({ children, title, description, providedAuth = false }: { chi
 
 export function LoginPage() {
   const [searchParams] = useSearchParams()
+  const accountRole = getStoredAccountRole()
+  if (accountRole === 'buyer') {
+    return <Navigate to={getSafeReturnTo(searchParams.get('returnTo'), accountRole) ?? '/gallery'} replace/>
+  }
   return <AuthFrame providedAuth><SignUpModal key={searchParams.get('role') ?? 'default'}/></AuthFrame>
 }
 
@@ -42,4 +50,3 @@ export function ForgotPasswordPage() {
     <p className="auth-switch"><Link to={`/login${location.search}`}>Back to sign in</Link></p>
   </AuthFrame>
 }
-

@@ -26,11 +26,11 @@
 }
 
 .morph-button.morph-button--success {
-  border-color: #00bf82;
+  border-color: #00BC7D;
   border-radius: 999px;
-  background: #00bf82;
+  background: #00BC7D;
   color: #ffffff;
-  box-shadow: 0 3px 16px rgb(0 191 130 / 18%);
+  box-shadow: 0 3px 16px rgb(0 188 125 / 18%);
   cursor: default;
   text-transform: none;
   transform: none;

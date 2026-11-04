@@ -19,8 +19,10 @@ import {
 import { FaInstagram } from 'react-icons/fa6'
 import { toast } from '../../components/ui/toast'
 import { apiAssetUrl, apiUrl } from '../../lib/api'
+import { clearAuthSession } from '../../lib/authSession'
 import { formatINR } from '../../utils/formatCurrency'
 import { ProtectedArtworkImage } from '../../components/ProtectedArtworkImage'
+import { ArtworkCardSkeleton, Skeleton } from '../../components/ui/Skeleton'
 import './PublicArtistPage.css'
 
 export type PublicArtwork = {
@@ -47,6 +49,8 @@ export type PublicArtist = {
   location: string | null
   instagramUrl: string | null
   websiteUrl: string | null
+  shopAnnouncement?: string | null
+  publicEmail?: string | null
   artworks: PublicArtwork[]
   followerCount: number
   isFollowing: boolean
@@ -412,7 +416,8 @@ export function PublicArtistPage() {
   const isSampleArtist = slug === 'elena-moreau'
 
   const [authToken, setAuthToken] = useState(() => localStorage.getItem('showpeice_token'))
-  const requestKey = (slug ?? '') + ':' + (authToken ?? '')
+  const [loadAttempt, setLoadAttempt] = useState(0)
+  const requestKey = (slug ?? '') + ':' + (authToken ?? '') + ':' + loadAttempt
 
   const [profileState, setProfileState] = useState<PublicProfileState>({
     requestKey: '',
@@ -604,7 +609,7 @@ export function PublicArtistPage() {
       const result = (await response.json().catch((): FollowResponse => ({}))) as FollowResponse
 
       if (response.status === 401) {
-        localStorage.removeItem('showpeice_token')
+        clearAuthSession()
         setAuthToken(null)
         throw new Error('Your session expired. Please sign in again.')
       }
@@ -673,15 +678,7 @@ export function PublicArtistPage() {
 
   // Loading state
   if (loading) {
-    return (
-      <main className="spotify-artist-page">
-        <div className="spotify-artist-status-wrap" role="status" aria-live="polite">
-          <div className="spotify-artist-spinner" aria-hidden="true" />
-          <h2>Loading Artist Profile</h2>
-          <p>Connecting to the Showpeice curated collection…</p>
-        </div>
-      </main>
-    )
+    return <PublicArtistProfileSkeleton />
   }
 
   // Error state
@@ -691,6 +688,7 @@ export function PublicArtistPage() {
         <div className="spotify-artist-status-wrap" role="alert">
           <h2>Profile Unavailable</h2>
           <p>{error || 'The requested artist profile could not be found or has been made private.'}</p>
+          <button type="button" className="spotify-status-button" onClick={() => setLoadAttempt(value => value + 1)}>Try again</button>
           <Link to="/artists" className="spotify-status-button">
             <ArrowLeft size={16} /> Return to Directory
           </Link>
@@ -779,6 +777,8 @@ export function PublicArtistPage() {
               {artist.artworks.length === 1 ? 'original work' : 'original works'}
             </span>
           </div>
+
+          {artist.shopAnnouncement && <p className="spotify-shop-announcement">{artist.shopAnnouncement}</p>}
 
           {/* Action Row */}
           <div className="spotify-hero-actions">
@@ -1280,10 +1280,18 @@ export function PublicArtistPage() {
                 </div>
 
                 {/* Official Artist Links */}
-                {(artist.websiteUrl || artist.instagramUrl) && (
+                {(artist.websiteUrl || artist.instagramUrl || artist.publicEmail) && (
                   <div className="spotify-about-card">
                     <div className="spotify-about-card-title">Presence & Channels</div>
                     <div className="spotify-links-list">
+                      {artist.publicEmail && (
+                        <a href={`mailto:${artist.publicEmail}`} className="spotify-social-link">
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                            <Mail size={15} /> Email
+                          </span>
+                          <span>{artist.publicEmail}</span>
+                        </a>
+                      )}
                       {artist.websiteUrl && (
                         <a
                           href={artist.websiteUrl}
@@ -1363,6 +1371,39 @@ export function PublicArtistPage() {
           onClose={() => setIsSampleEditorOpen(false)}
         />
       )}
+    </main>
+  )
+}
+
+function PublicArtistProfileSkeleton() {
+  return (
+    <main className="spotify-artist-page spotify-profile-skeleton" role="status" aria-label="Loading artist profile" aria-busy="true">
+      <section className="spotify-artist-hero" aria-hidden="true">
+        <div className="spotify-hero-backdrop"><Skeleton className="spotify-profile-skeleton-backdrop"/></div>
+        <div className="spotify-hero-top">
+          <Skeleton shape="text" className="spotify-profile-skeleton-back-link"/>
+          <Skeleton shape="text" className="spotify-profile-skeleton-share"/>
+        </div>
+        <div className="spotify-hero-content">
+          <Skeleton shape="text" className="spotify-profile-skeleton-verified"/>
+          <Skeleton className="spotify-profile-skeleton-title"/>
+          <div className="spotify-profile-skeleton-meta"><Skeleton shape="text"/><Skeleton shape="text"/><Skeleton shape="text"/></div>
+          <Skeleton className="spotify-profile-skeleton-announcement"/>
+          <div className="spotify-hero-actions"><Skeleton className="spotify-profile-skeleton-button"/><Skeleton className="spotify-profile-skeleton-button spotify-profile-skeleton-button-short"/></div>
+        </div>
+      </section>
+      <nav className="spotify-artist-nav" aria-hidden="true">
+        <div className="spotify-tabs-track"><Skeleton className="spotify-profile-skeleton-tab"/><Skeleton className="spotify-profile-skeleton-tab"/><Skeleton className="spotify-profile-skeleton-tab"/></div>
+      </nav>
+      <div className="spotify-artist-body" aria-hidden="true">
+        <div className="spotify-quick-stats spotify-profile-skeleton-stats">
+          {Array.from({ length: 4 }, (_, index) => <div className="spotify-profile-skeleton-stat" key={index}><Skeleton shape="text"/><Skeleton shape="text"/></div>)}
+        </div>
+        <section className="spotify-profile-skeleton-artworks">
+          <div className="spotify-section-header"><div><Skeleton shape="text" className="spotify-profile-skeleton-section-kicker"/><Skeleton className="spotify-profile-skeleton-section-title"/></div><Skeleton shape="text" className="spotify-profile-skeleton-view-all"/></div>
+          <div className="spotify-artwork-grid">{Array.from({ length: 4 }, (_, index) => <ArtworkCardSkeleton className="spotify-profile-skeleton-card" key={index}/>)}</div>
+        </section>
+      </div>
     </main>
   )
 }

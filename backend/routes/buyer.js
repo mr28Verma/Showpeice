@@ -93,6 +93,7 @@ function sanitizeUser(user) {
         avatarUrl: user.avatarUrl || null,
         location: user.location || null,
         emailNotifications: Boolean(user.emailNotifications),
+        orderNotifications: user.orderNotifications !== false,
         createdAt: user.createdAt,
     };
 }
@@ -203,45 +204,73 @@ router.get('/profile', requireAuth, requireBuyerAccess, async (req, res) => {
 
 // 3. PATCH /api/buyer/profile
 router.patch('/profile', requireAuth, requireBuyerAccess, async (req, res) => {
-    const { firstName, lastName, email, phone, displayName, bio, location, avatarUrl, emailNotifications } = req.body || {};
+    const body = req.body && typeof req.body === 'object' && !Array.isArray(req.body) ? req.body : {};
+    const has = (field) => Object.prototype.hasOwnProperty.call(body, field);
+    const data = {};
 
-    const cleanFirst = typeof firstName === 'string' ? firstName.trim() : '';
-    const cleanLast = typeof lastName === 'string' ? lastName.trim() : '';
-    const cleanEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
-    const cleanPhone = typeof phone === 'string' ? phone.trim() : null;
-    const cleanDisplayName = typeof displayName === 'string' ? displayName.trim() : null;
-    const cleanBio = typeof bio === 'string' ? bio.trim() : null;
-    const cleanLocation = typeof location === 'string' ? location.trim() : null;
+    for (const [field, label] of [['firstName', 'First name'], ['lastName', 'Last name']]) {
+        if (!has(field)) continue;
+        const value = typeof body[field] === 'string' ? body[field].trim() : '';
+        if (!value || value.length > 80) {
+            return res.status(400).json({ error: `${label} is required (up to 80 characters).` });
+        }
+        data[field] = value;
+    }
 
-    if (!cleanFirst || cleanFirst.length > 80) {
-        return res.status(400).json({ error: 'First name is required (up to 80 characters).' });
+    if (has('email')) {
+        const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+            return res.status(400).json({ error: 'A valid email address is required.' });
+        }
+        data.email = email;
     }
-    if (!cleanLast || cleanLast.length > 80) {
-        return res.status(400).json({ error: 'Last name is required (up to 80 characters).' });
+
+    if (has('phone')) {
+        const phone = body.phone === null ? '' : typeof body.phone === 'string' ? body.phone.trim() : null;
+        if (phone === null || (phone && (phone.length > 30 || !/^[+0-9\s\-()]{7,30}$/.test(phone)))) {
+            return res.status(400).json({ error: 'Provide a valid phone number (7-30 characters) or leave it empty.' });
+        }
+        data.phone = phone || null;
     }
-    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail) || cleanEmail.length > 254) {
-        return res.status(400).json({ error: 'A valid email address is required.' });
+
+    for (const [field, label, maxLength] of [
+        ['displayName', 'Display name', 80],
+        ['bio', 'Bio', 2000],
+        ['location', 'Location', 120],
+    ]) {
+        if (!has(field)) continue;
+        const value = body[field] === null ? '' : typeof body[field] === 'string' ? body[field].trim() : null;
+        if (value === null || value.length > maxLength) {
+            return res.status(400).json({ error: `${label} must not exceed ${maxLength} characters.` });
+        }
+        data[field] = value || null;
     }
-    if (cleanPhone && (cleanPhone.length > 30 || !/^[+0-9\s\-()]{7,30}$/.test(cleanPhone))) {
-        return res.status(400).json({ error: 'Provide a valid phone number (7-30 characters) or leave it empty.' });
+
+    if (has('avatarUrl')) {
+        if (body.avatarUrl !== null && body.avatarUrl !== '' && !validImageUrl(body.avatarUrl)) {
+            return res.status(400).json({ error: 'Provide a valid image URL for profile photo.' });
+        }
+        data.avatarUrl = body.avatarUrl || null;
     }
-    if (cleanDisplayName && cleanDisplayName.length > 80) {
-        return res.status(400).json({ error: 'Display name must not exceed 80 characters.' });
+    for (const [field, label] of [
+        ['emailNotifications', 'Curated artwork email preference'],
+        ['orderNotifications', 'Order update email preference'],
+    ]) {
+        if (!has(field)) continue;
+        if (typeof body[field] !== 'boolean') {
+            return res.status(400).json({ error: `${label} must be true or false.` });
+        }
+        data[field] = body[field];
     }
-    if (cleanBio && cleanBio.length > 2000) {
-        return res.status(400).json({ error: 'Bio must not exceed 2000 characters.' });
-    }
-    if (cleanLocation && cleanLocation.length > 120) {
-        return res.status(400).json({ error: 'Location must not exceed 120 characters.' });
-    }
-    if (avatarUrl !== undefined && !validImageUrl(avatarUrl)) {
-        return res.status(400).json({ error: 'Provide a valid image URL for profile photo.' });
+
+    if (Object.keys(data).length === 0) {
+        return res.status(400).json({ error: 'Provide at least one profile field to update.' });
     }
 
     try {
-        if (cleanEmail !== req.authenticatedUser.email) {
+        if (data.email && data.email !== req.authenticatedUser.email) {
             const conflict = await prisma.user.findUnique({
-                where: { email: cleanEmail },
+                where: { email: data.email },
                 select: { id: true },
             });
             if (conflict && conflict.id !== req.authenticatedUser.id) {
@@ -251,17 +280,7 @@ router.patch('/profile', requireAuth, requireBuyerAccess, async (req, res) => {
 
         const updated = await prisma.user.update({
             where: { id: req.authenticatedUser.id },
-            data: {
-                firstName: cleanFirst,
-                lastName: cleanLast,
-                email: cleanEmail,
-                phone: cleanPhone || null,
-                displayName: cleanDisplayName || null,
-                bio: cleanBio || null,
-                location: cleanLocation || null,
-                ...(avatarUrl !== undefined ? { avatarUrl: avatarUrl || null } : {}),
-                ...(typeof emailNotifications === 'boolean' ? { emailNotifications } : {}),
-            },
+            data,
         });
 
         return res.json({
@@ -269,6 +288,9 @@ router.patch('/profile', requireAuth, requireBuyerAccess, async (req, res) => {
             user: sanitizeUser(updated),
         });
     } catch (error) {
+        if (error.code === 'P2002') {
+            return res.status(409).json({ error: 'An account with this email address already exists.' });
+        }
         console.error('[buyer/profile] Error updating profile:', error);
         return res.status(500).json({ error: 'Failed to update profile. Please try again.' });
     }
@@ -478,6 +500,10 @@ router.post('/addresses', requireAuth, requireBuyerAccess, async (req, res) => {
     const cleanPostal = typeof postalCode === 'string' ? postalCode.trim() : '';
     const cleanCountry = typeof country === 'string' && country.trim() ? country.trim() : 'India';
 
+    if (isDefault !== undefined && typeof isDefault !== 'boolean') {
+        return res.status(400).json({ error: 'Default address must be true or false.' });
+    }
+
     if (!cleanName || cleanName.length > 100) {
         return res.status(400).json({ error: 'Recipient name is required (up to 100 characters).' });
     }
@@ -493,32 +519,39 @@ router.post('/addresses', requireAuth, requireBuyerAccess, async (req, res) => {
     if (!cleanPostal || cleanPostal.length > 20) {
         return res.status(400).json({ error: 'Postal / PIN code is required (up to 20 characters).' });
     }
+    if (cleanPhone && (cleanPhone.length > 30 || !/^[+0-9\s\-()]{7,30}$/.test(cleanPhone))) {
+        return res.status(400).json({ error: 'Provide a valid phone number (7-30 characters) or leave it empty.' });
+    }
+    if (cleanCountry.length > 100) {
+        return res.status(400).json({ error: 'Country must not exceed 100 characters.' });
+    }
 
     try {
         const userId = req.authenticatedUser.id;
+        const address = await prisma.$transaction(async (transaction) => {
+            const count = await transaction.address.count({ where: { userId } });
+            const shouldBeDefault = isDefault === true || count === 0;
 
-        const count = await prisma.address.count({ where: { userId } });
-        const shouldBeDefault = Boolean(isDefault) || count === 0;
+            if (shouldBeDefault) {
+                await transaction.address.updateMany({
+                    where: { userId },
+                    data: { isDefault: false },
+                });
+            }
 
-        if (shouldBeDefault) {
-            await prisma.address.updateMany({
-                where: { userId },
-                data: { isDefault: false },
+            return transaction.address.create({
+                data: {
+                    userId,
+                    fullName: cleanName,
+                    phone: cleanPhone || null,
+                    street: cleanStreet,
+                    city: cleanCity,
+                    state: cleanState,
+                    postalCode: cleanPostal,
+                    country: cleanCountry,
+                    isDefault: shouldBeDefault,
+                },
             });
-        }
-
-        const address = await prisma.address.create({
-            data: {
-                userId,
-                fullName: cleanName,
-                phone: cleanPhone || null,
-                street: cleanStreet,
-                city: cleanCity,
-                state: cleanState,
-                postalCode: cleanPostal,
-                country: cleanCountry,
-                isDefault: shouldBeDefault,
-            },
         });
 
         return res.status(201).json({ address });
@@ -545,35 +578,63 @@ router.patch('/addresses/:id', requireAuth, requireBuyerAccess, async (req, res)
     const cleanPostal = typeof postalCode === 'string' ? postalCode.trim() : undefined;
     const cleanCountry = typeof country === 'string' ? country.trim() : undefined;
 
+    if (isDefault !== undefined && typeof isDefault !== 'boolean') {
+        return res.status(400).json({ error: 'Default address must be true or false.' });
+    }
+    if (Object.keys(req.body || {}).length === 0) {
+        return res.status(400).json({ error: 'Provide at least one address field to update.' });
+    }
+    if (cleanName !== undefined && (!cleanName || cleanName.length > 100)) {
+        return res.status(400).json({ error: 'Recipient name is required (up to 100 characters).' });
+    }
+    if (cleanPhone !== undefined && cleanPhone && (cleanPhone.length > 30 || !/^[+0-9\s\-()]{7,30}$/.test(cleanPhone))) {
+        return res.status(400).json({ error: 'Provide a valid phone number (7-30 characters) or leave it empty.' });
+    }
+    if (cleanStreet !== undefined && (!cleanStreet || cleanStreet.length > 255)) {
+        return res.status(400).json({ error: 'Street address is required (up to 255 characters).' });
+    }
+    if (cleanCity !== undefined && (!cleanCity || cleanCity.length > 100)) {
+        return res.status(400).json({ error: 'City is required (up to 100 characters).' });
+    }
+    if (cleanState !== undefined && (!cleanState || cleanState.length > 100)) {
+        return res.status(400).json({ error: 'State is required (up to 100 characters).' });
+    }
+    if (cleanPostal !== undefined && (!cleanPostal || cleanPostal.length > 20)) {
+        return res.status(400).json({ error: 'Postal / PIN code is required (up to 20 characters).' });
+    }
+    if (cleanCountry !== undefined && (!cleanCountry || cleanCountry.length > 100)) {
+        return res.status(400).json({ error: 'Country is required (up to 100 characters).' });
+    }
+
     try {
-        const existing = await prisma.address.findFirst({
-            where: { id, userId: req.authenticatedUser.id },
-        });
-
-        if (!existing) {
-            return res.status(404).json({ error: 'Address not found.' });
-        }
-
-        if (isDefault === true) {
-            await prisma.address.updateMany({
-                where: { userId: req.authenticatedUser.id },
-                data: { isDefault: false },
+        const updated = await prisma.$transaction(async (transaction) => {
+            const existing = await transaction.address.findFirst({
+                where: { id, userId: req.authenticatedUser.id },
             });
-        }
+            if (!existing) return null;
 
-        const updated = await prisma.address.update({
-            where: { id },
-            data: {
-                ...(cleanName !== undefined ? { fullName: cleanName } : {}),
-                ...(cleanPhone !== undefined ? { phone: cleanPhone || null } : {}),
-                ...(cleanStreet !== undefined ? { street: cleanStreet } : {}),
-                ...(cleanCity !== undefined ? { city: cleanCity } : {}),
-                ...(cleanState !== undefined ? { state: cleanState } : {}),
-                ...(cleanPostal !== undefined ? { postalCode: cleanPostal } : {}),
-                ...(cleanCountry !== undefined ? { country: cleanCountry } : {}),
-                ...(typeof isDefault === 'boolean' ? { isDefault } : {}),
-            },
+            if (isDefault === true) {
+                await transaction.address.updateMany({
+                    where: { userId: req.authenticatedUser.id },
+                    data: { isDefault: false },
+                });
+            }
+
+            return transaction.address.update({
+                where: { id },
+                data: {
+                    ...(cleanName !== undefined ? { fullName: cleanName } : {}),
+                    ...(cleanPhone !== undefined ? { phone: cleanPhone || null } : {}),
+                    ...(cleanStreet !== undefined ? { street: cleanStreet } : {}),
+                    ...(cleanCity !== undefined ? { city: cleanCity } : {}),
+                    ...(cleanState !== undefined ? { state: cleanState } : {}),
+                    ...(cleanPostal !== undefined ? { postalCode: cleanPostal } : {}),
+                    ...(cleanCountry !== undefined ? { country: cleanCountry } : {}),
+                    ...(typeof isDefault === 'boolean' ? { isDefault } : {}),
+                },
+            });
         });
+        if (!updated) return res.status(404).json({ error: 'Address not found.' });
 
         return res.json({ address: updated });
     } catch (error) {
@@ -590,28 +651,29 @@ router.delete('/addresses/:id', requireAuth, requireBuyerAccess, async (req, res
     }
 
     try {
-        const existing = await prisma.address.findFirst({
-            where: { id, userId: req.authenticatedUser.id },
-        });
-
-        if (!existing) {
-            return res.status(404).json({ error: 'Address not found.' });
-        }
-
-        await prisma.address.delete({ where: { id } });
-
-        if (existing.isDefault) {
-            const nextAddress = await prisma.address.findFirst({
-                where: { userId: req.authenticatedUser.id },
-                orderBy: { createdAt: 'desc' },
+        const deleted = await prisma.$transaction(async (transaction) => {
+            const existing = await transaction.address.findFirst({
+                where: { id, userId: req.authenticatedUser.id },
             });
-            if (nextAddress) {
-                await prisma.address.update({
-                    where: { id: nextAddress.id },
-                    data: { isDefault: true },
+            if (!existing) return false;
+
+            await transaction.address.delete({ where: { id } });
+
+            if (existing.isDefault) {
+                const nextAddress = await transaction.address.findFirst({
+                    where: { userId: req.authenticatedUser.id },
+                    orderBy: { createdAt: 'desc' },
                 });
+                if (nextAddress) {
+                    await transaction.address.update({
+                        where: { id: nextAddress.id },
+                        data: { isDefault: true },
+                    });
+                }
             }
-        }
+            return true;
+        });
+        if (!deleted) return res.status(404).json({ error: 'Address not found.' });
 
         return res.json({ success: true, message: 'Address removed.' });
     } catch (error) {
@@ -620,131 +682,11 @@ router.delete('/addresses/:id', requireAuth, requireBuyerAccess, async (req, res
     }
 });
 
-// 12. POST /api/buyer/orders/checkout (Create order from items)
-router.post('/orders/checkout', requireAuth, requireBuyerAccess, async (req, res) => {
-    const userId = req.authenticatedUser.id;
-    const { items, addressId, shippingAddress, paymentMethod = 'card' } = req.body || {};
-
-    if (!Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: 'Cart is empty. Add artworks to checkout.' });
-    }
-
-    try {
-        const artworkIds = items.map((i) => Number(i.artworkId)).filter((id) => Number.isSafeInteger(id) && id > 0);
-        if (artworkIds.length !== items.length) {
-            return res.status(400).json({ error: 'Invalid artwork items in order request.' });
-        }
-
-        const artworks = await prisma.artwork.findMany({
-            where: { id: { in: artworkIds } },
-            select: { id: true, title: true, price: true, available: true, status: true },
-        });
-
-        if (artworks.length === 0) {
-            return res.status(400).json({ error: 'None of the requested artworks were found.' });
-        }
-
-        const artworkMap = new Map(artworks.map((a) => [a.id, a]));
-
-        let totalAmount = 0;
-        const validatedItems = [];
-
-        for (const item of items) {
-            const art = artworkMap.get(Number(item.artworkId));
-            if (!art) {
-                return res.status(400).json({ error: `Artwork #${item.artworkId} is no longer available.` });
-            }
-            const qty = Math.max(1, Number(item.quantity) || 1);
-            const linePrice = art.price;
-            totalAmount += linePrice * qty;
-            validatedItems.push({
-                artworkId: art.id,
-                quantity: qty,
-                price: linePrice,
-            });
-        }
-
-        let addressSnapshot = shippingAddress;
-        let selectedAddressId = null;
-
-        if (addressId) {
-            const saved = await prisma.address.findFirst({
-                where: { id: Number(addressId), userId },
-            });
-            if (saved) {
-                selectedAddressId = saved.id;
-                addressSnapshot = {
-                    fullName: saved.fullName,
-                    phone: saved.phone,
-                    street: saved.street,
-                    city: saved.city,
-                    state: saved.state,
-                    postalCode: saved.postalCode,
-                    country: saved.country,
-                };
-            }
-        }
-
-        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-        const randomSuffix = crypto.randomBytes(3).toString('hex').toUpperCase();
-        const orderNumber = `SP-${dateStr}-${randomSuffix}`;
-
-        const estimatedDelivery = new Date();
-        estimatedDelivery.setDate(estimatedDelivery.getDate() + 5);
-
-        const newOrder = await prisma.$transaction(async (tx) => {
-            const order = await tx.order.create({
-                data: {
-                    orderNumber,
-                    buyerId: userId,
-                    totalAmount,
-                    status: 'processing',
-                    paymentStatus: 'paid',
-                    paymentMethod,
-                    addressId: selectedAddressId,
-                    shippingAddress: addressSnapshot || null,
-                    trackingNumber: `TRK-${crypto.randomBytes(4).toString('hex').toUpperCase()}`,
-                    estimatedDelivery,
-                    items: {
-                        create: validatedItems,
-                    },
-                },
-                include: {
-                    items: {
-                        include: {
-                            artwork: {
-                                select: {
-                                    id: true,
-                                    title: true,
-                                    price: true,
-                                    imageUrl: true,
-                                    isProtected: true,
-                                    artist: {
-                                        select: {
-                                            id: true,
-                                            firstName: true,
-                                            lastName: true,
-                                            displayName: true,
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            });
-
-            return order;
-        });
-
-        return res.status(201).json({
-            message: 'Order created successfully.',
-            order: serializeBuyerOrder(newOrder),
-        });
-    } catch (error) {
-        console.error('[buyer/checkout] Checkout failed:', error);
-        return res.status(500).json({ error: 'Order could not be placed. Please try again.' });
-    }
+// Checkout must stay closed until a server-verified payment provider is configured.
+router.post('/orders/checkout', requireAuth, requireBuyerAccess, (_req, res) => {
+    return res.status(503).json({
+        error: 'Secure payment processing is not configured. No order has been created.',
+    });
 });
 
 module.exports = router;

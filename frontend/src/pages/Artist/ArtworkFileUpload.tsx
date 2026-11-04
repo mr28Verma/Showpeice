@@ -8,7 +8,7 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
-  pdf: 'application/pdf',
+  webp: 'image/webp',
 }
 
 type ArtworkFileUploadProps = {
@@ -45,7 +45,7 @@ function validateArtworkFile(file: File, variant: 'artwork' | 'banner' | 'avatar
     return ''
   }
 
-  if (!expectedMime || !mimeMatches) return 'Choose a PNG, JPG, JPEG, or PDF file.'
+  if (!expectedMime || !mimeMatches || extension === 'pdf') return 'Choose a PNG, JPG, JPEG, or WebP image.'
   if (file.size === 0) return 'This file is empty. Choose a file with content.'
   if (file.size > MAX_FILE_BYTES) return 'Choose a file that is 10 MB or smaller.'
   return ''
@@ -72,7 +72,7 @@ export function ArtworkFileUpload({
   const hasSavedBanner = isBanner && Boolean(existingImageUrl && existingImageUrl.trim())
   const hasSavedArtwork = !isImageUploader && Boolean(existingImageUrl && existingImageUrl.trim())
   const extension = file ? fileExtension(file) : ''
-  const isImage = extension === 'png' || extension === 'jpg' || extension === 'jpeg'
+  const isImage = extension === 'png' || extension === 'jpg' || extension === 'jpeg' || extension === 'webp'
   const effectivePreviewUrl = file && isImage ? previewUrl : ''
   const displayBannerSrc = isBanner ? (file ? effectivePreviewUrl : (existingImageUrl?.trim() ?? '')) : ''
 
@@ -135,7 +135,7 @@ export function ArtworkFileUpload({
         <header className="artwork-file-upload-header">
           <div>
             <h3 id={`${inputId}-title`}>{isBanner ? 'Upload banner image' : isAvatar ? 'Upload avatar' : 'Upload files'}</h3>
-            <p id={helpId}>{isBanner ? 'PNG or JPEG up to 10 MB. A wide image around 3:1 works best.' : isAvatar ? 'PNG, JPG up to 10 MB.' : 'PNG, JPG or PDF up to 10 MB.'}</p>
+            <p id={helpId}>{isBanner ? 'PNG or JPEG up to 10 MB. A wide image around 3:1 works best.' : isAvatar ? 'PNG, JPG up to 10 MB.' : 'PNG, JPG, or WebP image up to 10 MB.'}</p>
           </div>
         </header>
       )}
@@ -145,7 +145,7 @@ export function ArtworkFileUpload({
         id={inputId}
         className="artwork-file-upload-input"
         type="file"
-        accept={isImageUploader ? '.png,.jpg,.jpeg,image/png,image/jpeg' : '.png,.jpg,.jpeg,.pdf,image/png,image/jpeg,application/pdf'}
+        accept={isImageUploader ? '.png,.jpg,.jpeg,image/png,image/jpeg' : '.png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp'}
         aria-describedby={helpId}
         tabIndex={-1}
         disabled={disabled}
@@ -201,12 +201,12 @@ export function ArtworkFileUpload({
           )}
           {isBanner && !disabled && <strong className="artwork-file-banner-title">Upload banner image</strong>}
           {isAvatar && !disabled && <strong className="artwork-file-banner-title">{file ? 'Change image' : 'Upload avatar'}</strong>}
-          <p>{uploading ? `Uploading ${isAvatar ? 'avatar' : 'banner'} image…` : disabled ? 'Saving profile changes…' : isBanner ? 'Drag and drop an image here or click to browse.' : isAvatar ? 'PNG, JPG up to 10 MB.' : <>
+          <p>{uploading ? `Uploading ${isAvatar ? 'avatar' : isBanner ? 'banner' : 'artwork'} image…` : disabled ? 'Saving changes…' : isBanner ? 'Drag and drop an image here or click to browse.' : isAvatar ? 'PNG, JPG up to 10 MB.' : <>
             Drag and drop, or{' '}
             <button
               type="button"
               className="artwork-file-browse"
-              aria-label="Browse for a PNG, JPG, JPEG, or PDF file"
+              aria-label="Browse for a PNG, JPG, JPEG, or WebP image"
               disabled={disabled}
               onClick={() => {
                 openFileDialog()
@@ -339,7 +339,7 @@ export function ArtworkFileUpload({
 
       {error && <p className="artwork-file-error" role="alert">{error}</p>}
       {isImageUploader && uploadSuccess && <p className="artwork-file-upload-success" role="status">{isAvatar ? 'Avatar' : 'Banner image'} uploaded and saved.</p>}
-      {!isImageUploader && <p className="artwork-file-upload-note">Files stay on this device until server upload is connected.</p>}
+      {!isImageUploader && <p className="artwork-file-upload-note">Artwork images are securely uploaded when you save.</p>}
     </section>
   )
 }
